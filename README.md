@@ -1,13 +1,14 @@
 # kube-shell
-Kubernetes shell: An integrated shell for working with the Kubernetes CLI
+
+WIP Kubernetes shell: An integrated shell for working with the Kubernetes CLI
+
+![](http://i.imgur.com/bAWZt4c.gif)
 
 ## kube-shell features
 
-- profiles (selection of cluster, x, y, z..)
+- Auto Completion of Commands and Options
 - in-line documentation
 - Fish-Style Auto Suggestions
 - Command History
 - Fuzzy Searching
 - Server Side Auto Completion
-- Auto Completion of Commands and Options
-
