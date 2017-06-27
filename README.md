@@ -9,9 +9,9 @@ Kubernetes shell: An integrated shell for working with the Kubernetes CLI
 
 ## Installation
 
-The kube-shell requires python and [`pip`](https://pypi.python.org/pypi/pip) to install. You can install the aws-shell using `pip`:
+The kube-shell requires python and [`pip`](https://pypi.python.org/pypi/pip) to install. You can install the kube-shell using `pip`:
 ``` bash
-    $ pip install aws-shell
+    $ pip install kube-shell
 ```
 ### Usage
 
