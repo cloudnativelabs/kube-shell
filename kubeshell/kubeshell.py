@@ -16,7 +16,6 @@ import click
 import sys
 import subprocess
 
-history = FileHistory(os.path.expanduser('~/.kube-shell/history'))
 
 class DocumentStyle(Style):
     styles = {
@@ -27,21 +26,28 @@ class DocumentStyle(Style):
     }
     styles.update(DefaultStyle.styles)
 
-completer = KubectlCompleter()
 
-while 1:
-    user_input = prompt('kube-shell> ',
-            history=history,
-            auto_suggest=AutoSuggestFromHistory(),
-            style=StyleFactory("vim").style,
-            lexer=KubectlLexer,
-            completer=completer)
-    if user_input == "clear":
-        click.clear()
-    elif user_input == "exit":
-        sys.exit()
-    if user_input:
-        if '-o' in user_input and 'json' in user_input:
-            user_input = user_input + ' | pygmentize -l json'
-        p = subprocess.Popen(user_input, shell=True)
-        p.communicate()
+class Kubeshell(object):
+    def __init__(self, refresh_resources=True):
+        self.history = FileHistory(os.path.expanduser('~/.kube-shell/history'))
+        self.completer = KubectlCompleter()
+        if not os.path.exists(os.path.expanduser("~/.kube-shell/")):
+            os.makedirs(os.path.expanduser("~/.kube-shell/"))
+        pass
+    def run_cli(self):
+        while 1:
+            user_input = prompt('kube-shell> ',
+                        history=self.history,
+                        auto_suggest=AutoSuggestFromHistory(),
+                        style=StyleFactory("vim").style,
+                        lexer=KubectlLexer,
+                        completer=self.completer)
+            if user_input == "clear":
+                click.clear()
+            elif user_input == "exit":
+                sys.exit()
+            if user_input:
+                if '-o' in user_input and 'json' in user_input:
+                    user_input = user_input + ' | pygmentize -l json'
+                p = subprocess.Popen(user_input, shell=True)
+                p.communicate()

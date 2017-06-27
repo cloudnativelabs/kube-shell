@@ -8,7 +8,6 @@ import os.path
 
 class KubectlCompleter(Completer):
 
-
     def __init__(self):
         self.all_commands = []
         self.all_args = []
