@@ -1,6 +1,9 @@
+
+**NOTE: WILL UPDATE THE STATUS WHEN ITS IN USABLE STATE. RIGHT NOW ITS IN FLUX**
+
 # kube-shell
 
-WIP Kubernetes shell: An integrated shell for working with the Kubernetes CLI
+Kubernetes shell: An integrated shell for working with the Kubernetes CLI
 
 ![](http://i.imgur.com/bAWZt4c.gif)
 
