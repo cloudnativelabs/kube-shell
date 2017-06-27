@@ -5,6 +5,7 @@ import shlex
 import json
 import os
 import os.path
+from kubernetes import client, config
 
 class KubectlCompleter(Completer):
 
@@ -37,15 +38,22 @@ class KubectlCompleter(Completer):
 
     # TODO: Need cleanup to make code more readable and understandable
     #
-    # Based on the logic how kubectl works, this methods uses state maching to parse token
+    # Below is the grammer of how kubectl expects and parses argument, commands and options
+    #
+    # kubectl (global option)* command (global option | local option)* (subcommand (global option | local option)*)* (arg) (global option | local option)*
+    #
     # We use four states to parse command, args, global flags, local flags and suggest based on that
     #
     # states:
+    #
     #   INIT: this is starting state. In this state we only expect 'kubectl' as first token
+    #
     #   KUBCTL: State when first token is 'kubectl' and need to handle second token. In this state only commands of
     #           kubectl or one or more global options can be specified
-    #   KUBCTL_CMD: State represneting we have recieved 'kubeclt' and a 'command'. In this state either args, subcommands
+    #
+    #   KUBCTL_CMD: State representing case where we have received 'kubectl' and a 'command'. In this state either args, subcommands
     #           global options, or local options specifc to the commands can be specified
+    #
     #   KUBCTL_LEAF: In this state only global or local options for the commands can be specified. We will reach this
     #          state from KUBCTL_CMD when we longer have any sub-commands or args for the previous command
     #
@@ -171,7 +179,8 @@ class KubectlCompleter(Completer):
                         index = index + 1
                         continue
                     else:
-                        return
+                        state = "KUBCTL_ARG"
+                        continue
                 elif tokens[index] in key_map['subcommands'].keys():
                     command = command + "_" + tokens[index]
                     if not last_token:
@@ -213,6 +222,12 @@ class KubectlCompleter(Completer):
                             yield Completion(arg, -len(tokens[index]))
                         return
                 return
+            elif state == "KUBCTL_ARG":
+                resource = tokens[index]
+                if last_token and word_before_cursor == "":
+                    for resourceName, namespace in self.get_resources(resource, "default"):
+                        yield Completion(resourceName, display=resourceName, display_meta=namespace)
+                return
             elif state == "KUBCTL_LEAF":
                 if tokens[index].startswith("--"):
                     if last_token:
@@ -236,3 +251,78 @@ class KubectlCompleter(Completer):
                 else:
                     return
         return
+
+    def get_resources(self, resource, namespace):
+        names = []
+        config.load_kube_config()
+
+        v1 = client.CoreV1Api()
+        v1Beta1 = client.AppsV1beta1Api()
+        extensionsV1Beta1 = client.ExtensionsV1beta1Api()
+        autoscalingV1Api = client.AutoscalingV1Api()
+        rbacAPi = client.RbacAuthorizationV1beta1Api()
+        batchV1Api = client.BatchV1Api()
+        batchV2Api = client.BatchV2alpha1Api()
+
+        if resource == "pod":
+            ret = v1.list_pod_for_all_namespaces(watch=False)
+        elif resource == "service":
+            ret = v1.list_service_for_all_namespaces(watch=False)
+        elif resource == "deployment":
+            ret = v1Beta1.list_deployment_for_all_namespaces(watch=False)
+        elif resource == "statefulset":
+            ret = v1Beta1.list_stateful_set_for_all_namespaces(watch=False)
+        elif resource == "node":
+            ret = v1.list_node(watch=False)
+        elif resource == "namespace":
+            ret = v1.list_namespace(watch=False)
+        elif resource == "daemonset":
+            ret = extensionsV1Beta1.list_daemon_set_for_all_namespaces(watch=False)
+        elif resource == "networkpolicy":
+            ret = extensionsV1Beta1.list_network_policy_for_all_namespaces(watch=False)
+        elif resource == "thirdpartyresource":
+            ret = extensionsV1Beta1.list_third_party_resource(watch=False)
+        elif resource == "replicationcontroller":
+            ret = v1.list_replication_controller_for_all_namespaces(watch=False)
+        elif resource == "replicaset":
+            ret = extensionsV1Beta1.list_replica_set_for_all_namespaces(watch=False)
+        elif resource == "ingress":
+            ret = extensionsV1Beta1.list_ingress_for_all_namespaces(watch=False)
+        elif resource == "endpoints":
+            ret = v1.list_endpoints_for_all_namespaces(watch=False)
+        elif resource == "configmap":
+            ret = v1.list_config_map_for_all_namespaces(watch=False)
+        elif resource == "event":
+            ret = v1.list_event_for_all_namespaces(watch=False)
+        elif resource == "limitrange":
+            ret = v1.list_limit_range_for_all_namespaces(watch=False)
+        elif resource == "configmap":
+            ret = v1.list_config_map_for_all_namespaces(watch=False)
+        elif resource == "persistentvolume":
+            ret = v1.list_persistent_volume(watch=False)
+        elif resource == "secret":
+            ret = v1.list_secret_for_all_namespaces(watch=False)
+        elif resource == "resourcequota":
+            ret = v1.list_resource_quota_for_all_namespaces(watch=False)
+        elif resource == "componentstatus":
+            ret = v1.list_component_status(watch=False)
+        elif resource == "podtemplate":
+            ret = v1.list_pod_template_for_all_namespaces(watch=False)
+        elif resource == "serviceaccount":
+            ret = v1.list_service_account_for_all_namespaces(watch=False)
+        elif resource == "horizontalpodautoscaler":
+            ret = autoscalingV1Api.list_horizontal_pod_autoscaler_for_all_namespaces(watch=False)
+        elif resource == "clusterrole":
+            ret = rbacAPi.list_cluster_role(watch=False)
+        elif resource == "clusterrolebinding":
+            ret = rbacAPi.list_cluster_role_binding(watch=False)
+        elif resource == "job":
+            ret = batchV1Api.list_job_for_all_namespaces(watch=False)
+        elif resource == "cronjob":
+            ret = batchV2Api.list_cron_job_for_all_namespaces(watch=False)
+        elif resource == "scheduledjob":
+            ret = batchV2Api.list_scheduled_job_for_all_namespaces(watch=False)
+        for i in ret.items:
+            names.append((i.metadata.name, i.metadata.namespace))
+        return names
+
