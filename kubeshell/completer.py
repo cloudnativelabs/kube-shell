@@ -35,8 +35,20 @@ class KubectlCompleter(Completer):
 
             self.populate_cmds_args_opts(key_map[key]['subcommands'])
 
-    # TODO: command may not have subcommands, args or flags handle the case
-    # TODO: command may mutliple levels of subcommands
+    # TODO: Need cleanup to make code more readable and understandable
+    #
+    # Based on the logic how kubectl works, this methods uses state maching to parse token
+    # We use four states to parse command, args, global flags, local flags and suggest based on that
+    #
+    # states:
+    #   INIT: this is starting state. In this state we only expect 'kubectl' as first token
+    #   KUBCTL: State when first token is 'kubectl' and need to handle second token. In this state only commands of
+    #           kubectl or one or more global options can be specified
+    #   KUBCTL_CMD: State represneting we have recieved 'kubeclt' and a 'command'. In this state either args, subcommands
+    #           global options, or local options specifc to the commands can be specified
+    #   KUBCTL_LEAF: In this state only global or local options for the commands can be specified. We will reach this
+    #          state from KUBCTL_CMD when we longer have any sub-commands or args for the previous command
+    #
     def get_completions(self, document, complete_event, smart_completion=None):
         cmdline = document.text_before_cursor
         word_before_cursor = document.get_word_before_cursor(WORD=True)
