@@ -95,6 +95,9 @@ class KubectlCompleter(Completer):
                     state = "KUBCTL"
                     key_map = key_map['kubectl']
                     continue
+                else:
+                    index = index + 1
+                    continue
             elif state == "KUBCTL":
                 if tokens[index].startswith("--"):
                     if last_token:
