@@ -16,27 +16,27 @@ class KubectlLexer(RegexLexer):
                 tuple(['kubectl', 'clear', 'exit']),
                 prefix=r'\b',
                 suffix=r'\b'),
-             Name.Class),
+             Literal.String),
             (words(
                 tuple(completer.all_args),
                 prefix=r'\b',
                 suffix=r'\b'),
-             Keyword),
+             Name.Class),
             (words(
                 tuple(completer.all_commands),
                 prefix=r'\b',
                 suffix=r'\b'),
-             Keyword),
+             Name.Class),
             (words(
                 tuple(completer.all_opts),
                 prefix=r'',
                 suffix=r'\b'),
-            Keyword.Declaration),
+            Keyword),
             (words(
                 tuple(completer.global_opts),
                 prefix=r'',
                 suffix=r'\b'),
-            Keyword.Declaration),
+            Keyword),
             # Everything else
             (r'.*\n', Text),
         ]
