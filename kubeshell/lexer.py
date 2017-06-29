@@ -13,31 +13,30 @@ class KubectlLexer(RegexLexer):
     tokens = {
         'root': [
             (words(
-                tuple(['kubectl']),
-                prefix=r'\b',
-                suffix=r'\b'),
-             Literal.String),
-            (words(
-                tuple(completer.all_args),
-                prefix=r'\b',
-                suffix=r'\b'),
-             Keyword.Declaration),
-            (words(
-                tuple(completer.all_commands),
+                tuple(['kubectl', 'clear', 'exit']),
                 prefix=r'\b',
                 suffix=r'\b'),
              Name.Class),
             (words(
+                tuple(completer.all_args),
+                prefix=r'\b',
+                suffix=r'\b'),
+             Keyword),
+            (words(
+                tuple(completer.all_commands),
+                prefix=r'\b',
+                suffix=r'\b'),
+             Keyword),
+            (words(
                 tuple(completer.all_opts),
                 prefix=r'',
                 suffix=r'\b'),
-            Operator.Word),
+            Keyword.Declaration),
             (words(
                 tuple(completer.global_opts),
                 prefix=r'',
                 suffix=r'\b'),
-            Operator.Word),
-            #Keyword.Declaration),
+            Keyword.Declaration),
             # Everything else
             (r'.*\n', Text),
         ]

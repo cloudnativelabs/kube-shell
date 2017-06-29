@@ -28,14 +28,15 @@ class DocumentStyle(Style):
 
 
 class Kubeshell(object):
+
     def __init__(self, refresh_resources=True):
         self.history = FileHistory(os.path.expanduser('~/.kube-shell/history'))
-        self.completer = KubectlCompleter()
         if not os.path.exists(os.path.expanduser("~/.kube-shell/")):
             os.makedirs(os.path.expanduser("~/.kube-shell/"))
-        pass
+        self.completer = KubectlCompleter()
+
     def run_cli(self):
-        while 1:
+        while True:
             user_input = prompt('kube-shell> ',
                         history=self.history,
                         auto_suggest=AutoSuggestFromHistory(),

@@ -36,30 +36,29 @@ class KubectlCompleter(Completer):
 
             self.populate_cmds_args_opts(key_map[key]['subcommands'])
 
-    # TODO: Need cleanup to make code more readable and understandable
-    #
     # Below is the grammer of how kubectl expects and parses argument, commands and options
-    #
     # kubectl (global option)* command (global option | local option)* (subcommand (global option | local option)*)* (arg) (global option | local option)*
-    #
-    # We use four states to parse command, args, global flags, local flags and suggest based on that
+    # This method parse command, args, global flags, local flags from the text before cursor and suggest based on that return state,
+    # inner most command seen, arg if any, and pass the dict corresponding to the command
     #
     # states:
     #
-    #   INIT: this is starting state. In this state we only expect 'kubectl' as first token
+    #   INIT: this is starting state. In this state only 'kubectl' is expected as token
     #
-    #   KUBCTL: State when first token is 'kubectl' and need to handle second token. In this state only commands of
+    #   KUBECTL: State when first token is 'kubectl' and need to handle second token. In this state only commands of
     #           kubectl or one or more global options can be specified
     #
-    #   KUBCTL_CMD: State representing case where we have received 'kubectl' and a 'command'. In this state either args, subcommands
+    #   KUBECTL_CMD: State representing case where we have received 'kubectl' and a 'command'. In this state either args, subcommands
     #           global options, or local options specifc to the commands can be specified
     #
-    #   KUBCTL_LEAF: In this state only global or local options for the commands can be specified. We will reach this
+    #   KUBECTL_ARG: In this state only global or local options for the commands can be specified. And also
+    #          name os the resource like pods can be specified .We will reach this
+    #          state from KUBCTL_CMD when we parse arg for a command
+    #
+    #   KUBECTL_LEAF: In this state only global or local options for the commands can be specified. We will reach this
     #          state from KUBCTL_CMD when we longer have any sub-commands or args for the previous command
     #
-    def get_completions(self, document, complete_event, smart_completion=None):
-        cmdline = document.text_before_cursor
-        word_before_cursor = document.get_word_before_cursor(WORD=True)
+    def parse_tokens(self, cmdline):
         tokens = []
         if cmdline is not None:
             cmdline = cmdline.strip()
@@ -70,189 +69,143 @@ class KubectlCompleter(Completer):
         key_map = self.kubectl_dict
         last_token = False
 
-        if len(tokens) == 0:
-            yield Completion("kubectl", start_position=0, display="kubectl", display_meta=key_map['kubectl']['help'])
-            return
-
-        command = "kubectl"
-        while index < len(tokens):
-            last_token = (index == (len(tokens) - 1))
-            if state == "INIT":
-                if last_token:
-                    if tokens[0] != "kubectl":
-                        suggestions = fuzzyfinder(tokens[0], ['kubectl'])
-                        for suggestion in suggestions:
-                            yield Completion(suggestion, -len(tokens[0]), display="kubectl", display_meta=key_map['kubectl']['help'] )
-                        return
-                    elif word_before_cursor == "":
-                        for cmd in key_map['kubectl']['subcommands'].keys():
-                            yield Completion(cmd, display=cmd, display_meta=key_map['kubectl']['subcommands'][cmd]['help'])
-                        return
-                    elif word_before_cursor == "kubectl":
-                        return
-                elif tokens[0] == "kubectl":
-                    index = index + 1
-                    state = "KUBCTL"
-                    key_map = key_map['kubectl']
+        command = ""
+        arg = ""
+        for token in tokens:
+            if state == "INIT" and tokens[0] == "kubectl":
+                state = "KUBECTL"
+                key_map = key_map['kubectl']
+                command = "kubectl"
+                continue
+            elif state == "KUBECTL":
+                if token.startswith("--"):
                     continue
-                else:
-                    index = index + 1
+                if token in key_map['subcommands'].keys():
+                    state = "KUBECTL_CMD"
+                    key_map = key_map['subcommands'][token]
+                    command = token
+                continue
+            elif state == "KUBECTL_CMD":
+                if token.startswith("--"):
                     continue
-            elif state == "KUBCTL":
-                if tokens[index].startswith("--"):
-                    if last_token:
-                        if word_before_cursor == tokens[index]:
-                            if tokens[index] in self.global_opts:
-                                return
-                            else:
-                                global_opt_suggestions = fuzzyfinder(word_before_cursor, self.global_opts)
-                                for global_opt in global_opt_suggestions:
-                                    help_msg = self.kubectl_dict['kubectl']['options'][global_opt]['help']
-                                    yield Completion(global_opt, -len(word_before_cursor), display_meta=help_msg)
-                                return
-                        elif word_before_cursor == "":
-                            for cmd in key_map['subcommands'].keys():
-                                yield Completion(cmd, display=cmd, display_meta=key_map['subcommands'][cmd]['help'])
-                            return
-                    else:
-                        index = index + 1
+                if token in key_map['subcommands'].keys():
+                    state = "KUBECTL_CMD"
+                    key_map = key_map['subcommands'][token]
+                    command = token
+                    continue
+                if token in key_map['args']:
+                    state = "KUBECTL_ARG"
+                    arg = token
+                    continue
+                continue
+            elif state == "KUBECTL_ARG":
+                if token.startswith("--"):
+                    continue
+                resources = self.get_resources(arg, "default")
+                for resource_name, namespace in resources:
+                    if token == resource_name:
+                        state = "KUBECTL_LEAF"
                         continue
-                elif last_token and tokens[index] not in key_map['subcommands'].keys():
-                    if word_before_cursor == tokens[index]:
-                        suggestions = fuzzyfinder(tokens[index], key_map['subcommands'].keys())
-                        for suggestion in suggestions:
-                            yield Completion(suggestion, -len(tokens[index]), display=suggestion, display_meta=key_map['subcommands'][suggestion]['help'])
-                        return
-                    return
-                elif not last_token and tokens[index] in key_map['subcommands'].keys():
-                    key_map = key_map['subcommands'][tokens[index]]
-                    command = command + "_" + tokens[index]
-                    index = index + 1
-                    state = "KUBCTL_CMD"
+                continue
+            elif state == "KUBECTL_LEAF":
+                if token.startswith("--"):
                     continue
-                elif last_token and tokens[index] in key_map['subcommands'].keys() and word_before_cursor == "":
-                        subcommands = key_map['subcommands'][tokens[index]]['subcommands'].keys()
-                        if len(subcommands) > 0:
-                            for sub_cmd in subcommands:
-                                help_msg = key_map['subcommands'][tokens[index]]['subcommands'][sub_cmd]['help']
-                                yield Completion(sub_cmd, display=sub_cmd, display_meta=help_msg)
-                            return
-                        args =  key_map['subcommands'][tokens[index]]['args']
-                        if len(args) > 0:
-                            for arg in args:
-                                yield Completion(arg)
-                            return
-                        for global_opt in self.global_opts:
+                continue
+        return state, command, arg, key_map
+
+    def get_completions(self, document, complete_event, smart_completion=None):
+
+        word_before_cursor = document.get_word_before_cursor(WORD=True)
+
+        tokens = []
+        cmdline = document.text_before_cursor
+        if cmdline is not None:
+            cmdline = cmdline.strip()
+            try:
+                tokens = shlex.split(cmdline)
+            except:
+                return
+
+        state, command, arg, key_map = self.parse_tokens(cmdline)
+
+        if state == "INIT":
+            if len(tokens) == 0:
+                yield Completion("kubectl", start_position=0, display="kubectl", display_meta=key_map['kubectl']['help'])
+                return
+            if len(tokens) == 1 and word_before_cursor == tokens[0]:
+                suggestions = fuzzyfinder(tokens[0], ['kubectl'])
+                for suggestion in suggestions:
+                    yield Completion(suggestion, -len(tokens[0]), display="kubectl", display_meta=self.kubectl_dict['kubectl']['help'])
+        elif state == "KUBECTL":
+            last_token = tokens[-1]
+            if word_before_cursor == last_token:
+                if last_token.startswith("--"):
+                    if last_token in self.global_opts:
+                        return
+                    global_opt_suggestions = fuzzyfinder(word_before_cursor, self.global_opts)
+                    for global_opt in global_opt_suggestions:
+                        help_msg = self.kubectl_dict['kubectl']['options'][global_opt]['help']
+                        yield Completion(global_opt, -len(word_before_cursor), display_meta=help_msg)
+                else:
+                    suggestions = fuzzyfinder(last_token, key_map['subcommands'].keys())
+                    for suggestion in suggestions:
+                        yield Completion(suggestion, -len(last_token), display=suggestion, display_meta=key_map['subcommands'][suggestion]['help'])
+            if word_before_cursor == "":
+                for cmd in key_map['subcommands'].keys():
+                    yield Completion(cmd, display=cmd, display_meta=key_map['subcommands'][cmd]['help'])
+        elif state == "KUBECTL_CMD":
+            last_token = tokens[-1]
+            if word_before_cursor == last_token:
+                if last_token.startswith("--"):
+                    if last_token in self.global_opts or last_token in key_map['options'].keys():
+                        return
+                    else:
+                        command_opts = fuzzyfinder(word_before_cursor, key_map['options'].keys())
+                        for command_opt in command_opts:
+                            help_msg = key_map['options'][command_opt]['help']
+                            yield Completion(command_opt, -len(word_before_cursor), display=command_opt, display_meta=help_msg)
+                        global_opt_suggestions = fuzzyfinder(word_before_cursor, self.global_opts)
+                        for global_opt in global_opt_suggestions:
                             help_msg = self.kubectl_dict['kubectl']['options'][global_opt]['help']
-                            yield Completion(global_opt,  display=global_opt, display_meta=help_msg)
-
-                        for command_opt in key_map['subcommands'][tokens[index]]['options'].keys():
-                            help_msg = key_map['subcommands'][tokens[index]]['options'][command_opt]['help']
-                            yield Completion(command_opt, display=command_opt, display_meta=help_msg)
-                        return
-                return
-            elif state == "KUBCTL_CMD":
-                if tokens[index].startswith("--"):
-                    if last_token:
-                        if word_before_cursor == tokens[index]:
-                            if tokens[index] in self.global_opts or tokens[index] in key_map['options'].keys():
-                                return
-                            else:
-                                global_opt_suggestions = fuzzyfinder(word_before_cursor, self.global_opts)
-                                for global_opt in global_opt_suggestions:
-                                    help_msg = self.kubectl_dict['kubectl']['options'][global_opt]['help']
-                                    yield Completion(global_opt, -len(word_before_cursor), display=global_opt, display_meta=help_msg)
-
-                                command_opts = fuzzyfinder(word_before_cursor, key_map['options'].keys())
-                                for command_opt in command_opts:
-                                    help_msg = key_map['options'][command_opt]['help']
-                                    yield Completion(command_opt, -len(word_before_cursor), display=command_opt, display_meta=help_msg)
-                                return
-                        elif word_before_cursor == "":
-                            for cmd in key_map['subcommands'].keys():
-                                yield Completion(cmd, display=cmd, display_meta= key_map['subcommands'][cmd]['help'])
-                            return
-                        return
-                    else:
-                        index = index + 1
-                        continue
-                elif tokens[index] in key_map['args']:
-                    if not last_token:
-                        state = "KUBCTL_LEAF"
-                        index = index + 1
-                        continue
-                    else:
-                        state = "KUBCTL_ARG"
-                        continue
-                elif tokens[index] in key_map['subcommands'].keys():
-                    command = command + "_" + tokens[index]
-                    if not last_token:
-                        key_map = key_map['subcommands'][tokens[index]]
-                        index = index + 1
-                        continue
-                    else:
-                        if word_before_cursor == "":
-                            subcommands = key_map['subcommands'][tokens[index]]['subcommands'].keys()
-                            if len(subcommands) > 0:
-                                for sub_cmd in subcommands:
-                                    help_msg = key_map['subcommands'][tokens[index]]['subcommands'][sub_cmd]['help']
-                                    yield Completion(sub_cmd, display=sub_cmd, display_meta=help_msg)
-                                return
-                            args =  key_map['subcommands'][tokens[index]]['args']
-                            if len(args) > 0:
-                                for arg in args:
-                                    yield Completion(arg)
-                                return
-                            for global_opt in self.global_opts:
-                                help_msg = self.kubectl_dict['kubectl']['options'][global_opt]['help']
-                                yield Completion(global_opt,  display=global_opt, display_meta=help_msg)
-                            for command_opt in key_map['subcommands'][tokens[index]]['options'].keys():
-                                help_msg = key_map['subcommands'][tokens[index]]['options'][command_opt]['help']
-                                yield Completion(command_opt, display=command_opt, display_meta=help_msg)
-                            return
-                        return
-                elif last_token and tokens[index] not in key_map['subcommands'].keys():
+                            yield Completion(global_opt, -len(word_before_cursor), display=global_opt, display_meta=help_msg)
+                elif last_token != command:
                     subcommands = key_map['subcommands'].keys()
-                    if len(subcommands) > 0:
-                        suggestions = fuzzyfinder(tokens[index], subcommands)
+                    if len(subcommands) > 0 and last_token not in subcommands:
+                        suggestions = fuzzyfinder(last_token, subcommands)
                         for suggestion in suggestions:
-                            yield Completion(suggestion, -len(tokens[index]), display=suggestion, display_meta=key_map['subcommands'][suggestion]['help'])
-                        return
+                            yield Completion(suggestion, -len(last_token), display=suggestion, display_meta=key_map['subcommands'][suggestion]['help'])
                     args = key_map['args']
-                    if len(args) > 0:
-                        suggestions = fuzzyfinder(tokens[index], args)
+                    if len(args) > 0 and last_token not in args:
+                        suggestions = fuzzyfinder(last_token, args)
                         for arg in suggestions:
-                            yield Completion(arg, -len(tokens[index]))
-                        return
-                return
-            elif state == "KUBCTL_ARG":
-                resource = tokens[index]
-                if last_token and word_before_cursor == "":
-                    for resourceName, namespace in self.get_resources(resource, "default"):
-                        yield Completion(resourceName, display=resourceName, display_meta=namespace)
-                return
-            elif state == "KUBCTL_LEAF":
-                if tokens[index].startswith("--"):
-                    if last_token:
-                        if word_before_cursor == tokens[index]:
-                            if tokens[index] in self.global_opts or tokens[index] in key_map['options'].keys():
-                                return
-                            else:
-                                global_opt_suggestions = fuzzyfinder(word_before_cursor, self.global_opts)
-                                for global_opt in global_opt_suggestions:
-                                    help_msg = self.kubectl_dict['kubectl']['options'][global_opt]['help']
-                                    yield Completion(global_opt, -len(word_before_cursor), display=global_opt, display_meta=help_msg)
-                                command_opts = fuzzyfinder(word_before_cursor, key_map['options'].keys())
-                                for command_opt in command_opts:
-                                    help_msg = key_map['options'][command_opt]['help']
-                                    yield Completion(command_opt, -len(word_before_cursor), display=command_opt, display_meta=help_msg)
-                                return
-                    else:
-                        index = index +1
-                        continue
+                            yield Completion(arg, -len(last_token))
+            elif word_before_cursor == "":
+                subcommands = key_map['subcommands'].keys()
+                for subcommand in subcommands:
+                    yield Completion(subcommand, display=subcommand, display_meta=key_map['subcommands'][subcommand]['help'])
+                args = key_map['args']
+                for arg in args:
+                    yield Completion(arg)
+        elif state == "KUBECTL_ARG":
+            if word_before_cursor == "":
+                for resourceName, namespace in self.get_resources(arg, "default"):
+                    yield Completion(resourceName, display=resourceName, display_meta=namespace)
+        elif state == "KUBECTL_LEAF":
+            last_token = tokens[-1]
+            if last_token.startswith("--"):
+                if last_token in self.global_opts or last_token in key_map['options'].keys():
                     return
                 else:
-                    return
+                    command_opts = fuzzyfinder(word_before_cursor, key_map['options'].keys())
+                    for command_opt in command_opts:
+                        help_msg = key_map['options'][command_opt]['help']
+                        yield Completion(command_opt, -len(word_before_cursor), display=command_opt, display_meta=help_msg)
+                    global_opt_suggestions = fuzzyfinder(word_before_cursor, self.global_opts)
+                    for global_opt in global_opt_suggestions:
+                        help_msg = self.kubectl_dict['kubectl']['options'][global_opt]['help']
+                        yield Completion(global_opt, -len(word_before_cursor), display=global_opt, display_meta=help_msg)
+        else:
+            pass
         return
 
     def get_resources(self, resource, namespace):
