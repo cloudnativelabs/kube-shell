@@ -46,7 +46,7 @@ class Kubeshell(object):
                         style=StyleFactory("vim").style,
                         lexer=KubectlLexer,
                         get_title=get_title,
-                        enable_history_search=True,
+                        enable_history_search=False,
                         vi_mode=True,
                         completer=self.completer)
             if user_input == "clear":
