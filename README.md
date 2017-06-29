@@ -19,6 +19,8 @@ Under the hood kube-shell still calls kubectl. Kube-shell aims to provide ease-o
 
 #### Command History
 
+You can use up-arrow and down-arrow to walk through the history of commands executed. Also up-arrow partial string matching is possible. For e.g. enter 'kubectl get' and use up-arrow and down-arrow to browse through all kubectl get commands. You could also use CTRL+r to search from the history of commands.
+
 ![](http://i.imgur.com/lHEMAYt.png)
 
 #### Fuzzy Searching
@@ -28,6 +30,10 @@ Under the hood kube-shell still calls kubectl. Kube-shell aims to provide ease-o
 #### Server Side Auto Completion
 
 ![](http://i.imgur.com/hbRy0Rr.gif)
+
+#### vi editing mode
+
+Press ESC you have all key bindings (w: next word, b: prev word) to move across the words.
 
 ## Installation
 

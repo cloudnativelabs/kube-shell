@@ -27,6 +27,9 @@ class DocumentStyle(Style):
     styles.update(DefaultStyle.styles)
 
 
+def get_title():
+    return "kube-shell"
+
 class Kubeshell(object):
 
     def __init__(self, refresh_resources=True):
@@ -42,6 +45,9 @@ class Kubeshell(object):
                         auto_suggest=AutoSuggestFromHistory(),
                         style=StyleFactory("vim").style,
                         lexer=KubectlLexer,
+                        get_title=get_title,
+                        enable_history_search=True,
+                        vi_mode=True,
                         completer=self.completer)
             if user_input == "clear":
                 click.clear()
