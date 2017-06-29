@@ -14,6 +14,8 @@ class KubectlCompleter(Completer):
         self.all_args = []
         self.all_opts = []
         self.global_opts = []
+        self.inline_help = True
+
         try:
             DATA_DIR = os.path.dirname(os.path.realpath(__file__))
             DATA_PATH = os.path.join(DATA_DIR, 'data/cli.json')
@@ -22,6 +24,9 @@ class KubectlCompleter(Completer):
             self.populate_cmds_args_opts(self.kubectl_dict)
         except Exception as ex:
             print "got an exception" + ex.message
+
+    def set_inline_help(self, val):
+        self.inline_help = val
 
     def populate_cmds_args_opts(self, key_map):
         for key in key_map.keys():
@@ -102,10 +107,11 @@ class KubectlCompleter(Completer):
                 if token.startswith("--"):
                     continue
                 resources = self.get_resources(arg, "default")
-                for resource_name, namespace in resources:
-                    if token == resource_name:
-                        state = "KUBECTL_LEAF"
-                        continue
+                if resources:
+                    for resource_name, namespace in resources:
+                        if token == resource_name:
+                            state = "KUBECTL_LEAF"
+                            continue
                 continue
             elif state == "KUBECTL_LEAF":
                 if token.startswith("--"):
@@ -129,32 +135,42 @@ class KubectlCompleter(Completer):
         state, command, arg, key_map = self.parse_tokens(cmdline)
 
         if state == "INIT":
+            self.help_msg = ""
+            if self.inline_help:
+                self.help_msg = display_meta=key_map['kubectl']['help']
             if len(tokens) == 0:
-                yield Completion("kubectl", start_position=0, display="kubectl", display_meta=key_map['kubectl']['help'])
+                yield Completion("kubectl", start_position=0, display="kubectl", display_meta=self.help_msg)
                 return
             if len(tokens) == 1 and word_before_cursor == tokens[0]:
                 suggestions = fuzzyfinder(tokens[0], ['kubectl'])
                 for suggestion in suggestions:
-                    yield Completion(suggestion, -len(tokens[0]), display="kubectl", display_meta=self.kubectl_dict['kubectl']['help'])
+                    yield Completion(suggestion, -len(tokens[0]), display="kubectl", display_meta=self.help_msg)
         elif state == "KUBECTL":
             last_token = tokens[-1]
+            self.help_msg = ""
             if word_before_cursor == last_token:
                 if last_token.startswith("--"):
                     if last_token in self.global_opts:
                         return
                     global_opt_suggestions = fuzzyfinder(word_before_cursor, self.global_opts)
                     for global_opt in global_opt_suggestions:
-                        help_msg = self.kubectl_dict['kubectl']['options'][global_opt]['help']
-                        yield Completion(global_opt, -len(word_before_cursor), display_meta=help_msg)
+                        if self.inline_help:
+                            self.help_msg = self.kubectl_dict['kubectl']['options'][global_opt]['help']
+                        yield Completion(global_opt, -len(word_before_cursor), display_meta=self.help_msg)
                 else:
                     suggestions = fuzzyfinder(last_token, key_map['subcommands'].keys())
                     for suggestion in suggestions:
-                        yield Completion(suggestion, -len(last_token), display=suggestion, display_meta=key_map['subcommands'][suggestion]['help'])
+                        if self.inline_help:
+                            self.help_msg = key_map['subcommands'][suggestion]['help']
+                        yield Completion(suggestion, -len(last_token), display=suggestion, display_meta=self.help_msg)
             if word_before_cursor == "":
                 for cmd in key_map['subcommands'].keys():
-                    yield Completion(cmd, display=cmd, display_meta=key_map['subcommands'][cmd]['help'])
+                    if self.inline_help:
+                        self.help_msg = key_map['subcommands'][cmd]['help']
+                    yield Completion(cmd, display=cmd, display_meta=self.help_msg)
         elif state == "KUBECTL_CMD":
             last_token = tokens[-1]
+            self.help_msg = ""
             if word_before_cursor == last_token:
                 if last_token.startswith("--"):
                     if last_token in self.global_opts or last_token in key_map['options'].keys():
@@ -162,18 +178,22 @@ class KubectlCompleter(Completer):
                     else:
                         command_opts = fuzzyfinder(word_before_cursor, key_map['options'].keys())
                         for command_opt in command_opts:
-                            help_msg = key_map['options'][command_opt]['help']
-                            yield Completion(command_opt, -len(word_before_cursor), display=command_opt, display_meta=help_msg)
+                            if self.inline_help:
+                                self.help_msg = key_map['options'][command_opt]['help']
+                            yield Completion(command_opt, -len(word_before_cursor), display=command_opt, display_meta=self.help_msg)
                         global_opt_suggestions = fuzzyfinder(word_before_cursor, self.global_opts)
                         for global_opt in global_opt_suggestions:
-                            help_msg = self.kubectl_dict['kubectl']['options'][global_opt]['help']
-                            yield Completion(global_opt, -len(word_before_cursor), display=global_opt, display_meta=help_msg)
+                            if self.inline_help:
+                                self.help_msg = self.kubectl_dict['kubectl']['options'][global_opt]['help']
+                            yield Completion(global_opt, -len(word_before_cursor), display=global_opt, display_meta=self.help_msg)
                 elif last_token != command:
                     subcommands = key_map['subcommands'].keys()
                     if len(subcommands) > 0 and last_token not in subcommands:
                         suggestions = fuzzyfinder(last_token, subcommands)
                         for suggestion in suggestions:
-                            yield Completion(suggestion, -len(last_token), display=suggestion, display_meta=key_map['subcommands'][suggestion]['help'])
+                            if self.inline_help:
+                                self.help_msg = key_map['subcommands'][suggestion]['help']
+                            yield Completion(suggestion, -len(last_token), display=suggestion, display_meta=self.help_msg)
                     args = key_map['args']
                     if len(args) > 0 and last_token not in args:
                         suggestions = fuzzyfinder(last_token, args)
@@ -182,34 +202,41 @@ class KubectlCompleter(Completer):
             elif word_before_cursor == "":
                 subcommands = key_map['subcommands'].keys()
                 for subcommand in subcommands:
-                    yield Completion(subcommand, display=subcommand, display_meta=key_map['subcommands'][subcommand]['help'])
+                    if self.inline_help:
+                        self.help_msg = key_map['subcommands'][subcommand]['help']
+                    yield Completion(subcommand, display=subcommand, display_meta=self.help_msg)
                 args = key_map['args']
                 for arg in args:
                     yield Completion(arg)
         elif state == "KUBECTL_ARG":
             if word_before_cursor == "":
-                for resourceName, namespace in self.get_resources(arg, "default"):
-                    yield Completion(resourceName, display=resourceName, display_meta=namespace)
+                resources = self.get_resources(arg, "default")
+                if resources:
+                    for resourceName, namespace in self.get_resources(arg, "default"):
+                        yield Completion(resourceName, display=resourceName, display_meta=namespace)
         elif state == "KUBECTL_LEAF":
             last_token = tokens[-1]
+            self.help_msg = ""
             if last_token.startswith("--"):
                 if last_token in self.global_opts or last_token in key_map['options'].keys():
                     return
                 else:
                     command_opts = fuzzyfinder(word_before_cursor, key_map['options'].keys())
                     for command_opt in command_opts:
-                        help_msg = key_map['options'][command_opt]['help']
-                        yield Completion(command_opt, -len(word_before_cursor), display=command_opt, display_meta=help_msg)
+                        if self.inline_help:
+                            self.help_msg = key_map['options'][command_opt]['help']
+                        yield Completion(command_opt, -len(word_before_cursor), display=command_opt, display_meta=self.help_msg)
                     global_opt_suggestions = fuzzyfinder(word_before_cursor, self.global_opts)
                     for global_opt in global_opt_suggestions:
-                        help_msg = self.kubectl_dict['kubectl']['options'][global_opt]['help']
-                        yield Completion(global_opt, -len(word_before_cursor), display=global_opt, display_meta=help_msg)
+                        if self.inline_help:
+                            help_msg = self.kubectl_dict['kubectl']['options'][global_opt]['help']
+                        yield Completion(global_opt, -len(word_before_cursor), display=global_opt, display_meta=self.help_msg)
         else:
             pass
         return
 
-    def get_resources(self, resource, namespace):
-        names = []
+    def get_resources(self, resource, namespace="all"):
+        resources = []
         config.load_kube_config()
 
         v1 = client.CoreV1Api()
@@ -220,6 +247,9 @@ class KubectlCompleter(Completer):
         batchV1Api = client.BatchV1Api()
         batchV2Api = client.BatchV2alpha1Api()
 
+        ret = None
+        namespaced_resource = True
+
         if resource == "pod":
             ret = v1.list_pod_for_all_namespaces(watch=False)
         elif resource == "service":
@@ -229,14 +259,17 @@ class KubectlCompleter(Completer):
         elif resource == "statefulset":
             ret = v1Beta1.list_stateful_set_for_all_namespaces(watch=False)
         elif resource == "node":
+            namespaced_resource = False
             ret = v1.list_node(watch=False)
         elif resource == "namespace":
+            namespaced_resource = False
             ret = v1.list_namespace(watch=False)
         elif resource == "daemonset":
             ret = extensionsV1Beta1.list_daemon_set_for_all_namespaces(watch=False)
         elif resource == "networkpolicy":
             ret = extensionsV1Beta1.list_network_policy_for_all_namespaces(watch=False)
         elif resource == "thirdpartyresource":
+            namespaced_resource = False
             ret = extensionsV1Beta1.list_third_party_resource(watch=False)
         elif resource == "replicationcontroller":
             ret = v1.list_replication_controller_for_all_namespaces(watch=False)
@@ -255,12 +288,14 @@ class KubectlCompleter(Completer):
         elif resource == "configmap":
             ret = v1.list_config_map_for_all_namespaces(watch=False)
         elif resource == "persistentvolume":
+            namespaced_resource = False
             ret = v1.list_persistent_volume(watch=False)
         elif resource == "secret":
             ret = v1.list_secret_for_all_namespaces(watch=False)
         elif resource == "resourcequota":
             ret = v1.list_resource_quota_for_all_namespaces(watch=False)
         elif resource == "componentstatus":
+            namespaced_resource = False
             ret = v1.list_component_status(watch=False)
         elif resource == "podtemplate":
             ret = v1.list_pod_template_for_all_namespaces(watch=False)
@@ -269,8 +304,10 @@ class KubectlCompleter(Completer):
         elif resource == "horizontalpodautoscaler":
             ret = autoscalingV1Api.list_horizontal_pod_autoscaler_for_all_namespaces(watch=False)
         elif resource == "clusterrole":
+            namespaced_resource = False
             ret = rbacAPi.list_cluster_role(watch=False)
         elif resource == "clusterrolebinding":
+            namespaced_resource = False
             ret = rbacAPi.list_cluster_role_binding(watch=False)
         elif resource == "job":
             ret = batchV1Api.list_job_for_all_namespaces(watch=False)
@@ -278,7 +315,13 @@ class KubectlCompleter(Completer):
             ret = batchV2Api.list_cron_job_for_all_namespaces(watch=False)
         elif resource == "scheduledjob":
             ret = batchV2Api.list_scheduled_job_for_all_namespaces(watch=False)
-        for i in ret.items:
-            names.append((i.metadata.name, i.metadata.namespace))
-        return names
+
+        if ret:
+            for i in ret.items:
+                if namespace == "all" or not namespaced_resource:
+                    resources.append((i.metadata.name, i.metadata.namespace))
+                elif namespace == i.metadata.namespace:
+                    resources.append((i.metadata.name, i.metadata.namespace))
+            return resources
+        return None
 
