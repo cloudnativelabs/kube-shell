@@ -33,12 +33,14 @@ def get_title():
 class Kubeshell(object):
 
     def __init__(self, refresh_resources=True):
-        self.history = FileHistory(os.path.expanduser('~/.kube-shell/history'))
-        if not os.path.exists(os.path.expanduser("~/.kube-shell/")):
-            os.makedirs(os.path.expanduser("~/.kube-shell/"))
+        self.history = FileHistory(os.path.expanduser("~/.kube/shell/history"))
+        if not os.path.exists(os.path.expanduser("~/.kube/shell/")):
+            os.makedirs(os.path.expanduser("~/.kube/shell/"))
         self.completer = KubectlCompleter()
 
     def run_cli(self):
+        if not os.path.exists(os.path.expanduser("~/.kube/config")):
+            click.secho('Kube-shell uses ~/.kube/config for server side completion. Could not find ~/.kube/config. Server side completion functionality may not work.', fg='red', blink=True, bold=True)
         while True:
             user_input = prompt('kube-shell> ',
                         history=self.history,
