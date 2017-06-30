@@ -1,7 +1,5 @@
 #!/usr/bin/env python
-import re
-import ast
-from kubeshell.__init__ import __version__
+from kubeshell import __version__
 from setuptools import setup, find_packages
 
 requires = [

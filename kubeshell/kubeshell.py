@@ -1,4 +1,4 @@
-from __future__ import unicode_literals, print_function
+from __future__ import print_function, absolute_import, unicode_literals
 
 from prompt_toolkit import prompt
 from prompt_toolkit.history import FileHistory
@@ -10,11 +10,10 @@ from pygments.styles.default import DefaultStyle
 from prompt_toolkit.key_binding.defaults import load_key_bindings_for_prompt
 from prompt_toolkit.keys import Keys
 
-
-from style import StyleFactory
-from completer import KubectlCompleter
-from lexer import KubectlLexer
-from toolbar import Toolbar
+from kubeshell.style import StyleFactory
+from kubeshell.completer import KubectlCompleter
+from kubeshell.lexer import KubectlLexer
+from kubeshell.toolbar import Toolbar
 
 import os
 import click

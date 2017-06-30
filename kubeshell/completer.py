@@ -1,3 +1,4 @@
+from __future__ import absolute_import, unicode_literals, print_function
 from subprocess import check_output
 from prompt_toolkit.completion import Completer, Completion
 from fuzzyfinder import fuzzyfinder
@@ -23,7 +24,7 @@ class KubectlCompleter(Completer):
                 self.kubectl_dict = json.load(json_file)
             self.populate_cmds_args_opts(self.kubectl_dict)
         except Exception as ex:
-            print "got an exception" + ex.message
+            print("got an exception" + ex.message)
 
     def set_inline_help(self, val):
         self.inline_help = val

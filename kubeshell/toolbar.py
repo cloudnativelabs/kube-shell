@@ -1,3 +1,4 @@
+from __future__ import print_function, absolute_import, unicode_literals
 from pygments.token import Token
 from pygments.token import Keyword, Name, Operator, Generic, Literal, Text
 
