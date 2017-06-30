@@ -51,7 +51,17 @@ The kube-shell requires python and [`pip`](https://pypi.python.org/pypi/pip) to 
 ```
 ## Usage
 
-After installing kube-shell through pip, just run kube-shell
+After installing kube-shell through pip, just run kube-shell to bring up shell.
+
+At the kube-shell command prompt you can run exit or press F10 to exit the shell. You can clear the screen by running clear command.
+
+By default drop-down suggestion list also displays in-line documentation, you can turn on/off inline documnetation by pressing F4 button.
+
+## Under the hood
+
+Other than generation of suggestions all heavy lifting is done by Python's [prompt toolkit](https://github.com/jonathanslenders/python-prompt-toolkit), [Pygments](http://pygments.org) libraries.
+
+A GO [program](misc/python_eats_cobra.go) is used to generate kubectl's commands, subcommands, arguments, global options and local options in [json](kubeshell/data/cli.json) format. Kube-shell uses json file to suggest commands, subcommands, options and args. For server side completion kube-shell uses [client-python](https://github.com/kubernetes-incubator/client-python) libray to fetch the resources.
 
 ## Acknowledgement
 
