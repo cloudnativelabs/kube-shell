@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 from kubeshell import __version__
 from setuptools import setup, find_packages
 
@@ -18,6 +17,8 @@ setup(
     url='https://github.com/cloudnativelabs/kube-shell',
     packages=find_packages(),
     package_data={'kubeshell': ['data/cli.json']},
+    include_package_data=True,
+    zip_safe=False,
     install_requires=requires,
     entry_points={
         'console_scripts': [
@@ -25,6 +26,7 @@ setup(
         ]
     },
     license="Apache License 2.0",
+    keywords=('kubernetes', 'autocomplete', 'shell',),
     classifiers=(
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
