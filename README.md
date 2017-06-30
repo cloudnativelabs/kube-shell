@@ -3,6 +3,8 @@
 
 # kube-shell
 
+[![Build Status](https://travis-ci.org/cloudnativelabs/kube-shell.svg?branch=master)](https://travis-ci.org/cloudnativelabs/kube-shell) [![PyPI version](https://badge.fury.io/py/kube-shell.svg)](https://badge.fury.io/py/kube-shell) [![License](http://img.shields.io/:license-apache-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0.html)
+
 Kubernetes shell: An integrated shell for working with the Kubernetes CLI
 
 Under the hood kube-shell still calls kubectl. Kube-shell aims to provide ease-of-use of kubectl and increasing productivity. 
