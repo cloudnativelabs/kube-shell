@@ -35,6 +35,12 @@ You can use up-arrow and down-arrow to walk through the history of commands exec
 
 Press ESC you have all key bindings (w: next word, b: prev word) to move across the words.
 
+#### Context information
+
+Details of current context from kubeconfig is always readily displayed on the bottom toolbar.
+
+![](http://i.imgur.com/af2ZPfv.png)
+
 ## Installation
 
 The kube-shell requires python and [`pip`](https://pypi.python.org/pypi/pip) to install. You can install the kube-shell using `pip`:
