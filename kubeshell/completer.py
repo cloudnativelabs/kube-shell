@@ -16,6 +16,7 @@ class KubectlCompleter(Completer):
         self.all_opts = []
         self.global_opts = []
         self.inline_help = True
+        self.namespace = ""
 
         try:
             DATA_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -28,6 +29,9 @@ class KubectlCompleter(Completer):
 
     def set_inline_help(self, val):
         self.inline_help = val
+
+    def set_namespace(self, namespace):
+        self.namespace = namespace
 
     def populate_cmds_args_opts(self, key_map):
         for key in key_map.keys():
@@ -77,7 +81,19 @@ class KubectlCompleter(Completer):
 
         command = ""
         arg = ""
-        for token in tokens:
+        namespace = self.namespace
+
+        for index, token in enumerate(tokens):
+
+            # if --all-namespaces or --namespace option is passed overide the namespace info from the kubeconfig
+            if token == "--all-namespaces":
+                namespace = "all"
+            if token.startswith("--namespace"):
+                if "=" in token:
+                    namespace = token.split("=")[1]
+            if tokens[index-1] == "--namespace":
+                namespace = token
+
             if state == "INIT" and tokens[0] == "kubectl":
                 state = "KUBECTL"
                 key_map = key_map['kubectl']
@@ -107,7 +123,7 @@ class KubectlCompleter(Completer):
             elif state == "KUBECTL_ARG":
                 if token.startswith("--"):
                     continue
-                resources = self.get_resources(arg, "default")
+                resources = self.get_resources(arg)
                 if resources:
                     for resource_name, namespace in resources:
                         if token == resource_name:
@@ -118,7 +134,7 @@ class KubectlCompleter(Completer):
                 if token.startswith("--"):
                     continue
                 continue
-        return state, command, arg, key_map
+        return state, command, arg, key_map, namespace
 
     def get_completions(self, document, complete_event, smart_completion=None):
 
@@ -133,7 +149,7 @@ class KubectlCompleter(Completer):
             except:
                 return
 
-        state, command, arg, key_map = self.parse_tokens(cmdline)
+        state, command, arg, key_map, namespace = self.parse_tokens(cmdline)
 
         if state == "INIT":
             self.help_msg = ""
@@ -211,9 +227,9 @@ class KubectlCompleter(Completer):
                     yield Completion(arg)
         elif state == "KUBECTL_ARG":
             if word_before_cursor == "":
-                resources = self.get_resources(arg, "default")
+                resources = self.get_resources(arg, namespace)
                 if resources:
-                    for resourceName, namespace in self.get_resources(arg, "default"):
+                    for resourceName, namespace in resources:
                         yield Completion(resourceName, display=resourceName, display_meta=namespace)
         elif state == "KUBECTL_LEAF":
             last_token = tokens[-1]

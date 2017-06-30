@@ -104,6 +104,7 @@ class Kubeshell(object):
             except:
                 # TODO: log errors to log file
                 pass
+            completer.set_namespace(self.namespace)
             user_input = prompt('kube-shell> ',
                         history=self.history,
                         auto_suggest=AutoSuggestFromHistory(),
