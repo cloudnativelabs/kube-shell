@@ -6,6 +6,7 @@ python:
   - "3.6"
 install:
   - python setup.py install
+  - pip install pexpect
 script:
-  - py.test kubeshell/tests/test.py
+  - python kubeshell/tests/test_cli.py
 sudo: false
