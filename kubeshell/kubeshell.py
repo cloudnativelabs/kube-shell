@@ -67,23 +67,27 @@ class Kubeshell(object):
     def parse_kubeconfig(self):
         self.clustername = self.user = ""
         self.namespace = "default"
-        stream = open(os.path.expanduser("~/.kube/config"), "r")
-        docs = yaml.load_all(stream)
-        for doc in docs:
-            current_context = ""
-            for k,v in doc.items():
-                if k == "current-context":
-                    current_context = v
-            for k,v in doc.items():
-                if k == "contexts":
-                    for context in v:
-                        if context['name'] == current_context:
-                            if 'cluster' in context['context']:
-                                self.clustername = context['context']['cluster']
-                            if 'namespace' in context['context']:
-                                self.namespace = context['context']['namespace']
-                            if 'user' in context['context']:
-                                self.user = context['context']['user']
+
+        if not os.path.exists(os.path.expanduser("~/.kube/config")):
+            return
+
+        with open(os.path.expanduser("~/.kube/config"), "r") as fd:
+            docs = yaml.load_all(fd)
+            for doc in docs:
+                current_context = ""
+                for k,v in doc.items():
+                    if k == "current-context":
+                        current_context = v
+                for k,v in doc.items():
+                    if k == "contexts":
+                        for context in v:
+                            if context['name'] == current_context:
+                                if 'cluster' in context['context']:
+                                    self.clustername = context['context']['cluster']
+                                if 'namespace' in context['context']:
+                                    self.namespace = context['context']['namespace']
+                                if 'user' in context['context']:
+                                    self.user = context['context']['user']
 
     def run_cli(self):
 
@@ -95,7 +99,11 @@ class Kubeshell(object):
                     Server side completion functionality may not work.', fg='red', blink=True, bold=True)
         while True:
             global inline_help
-            self.parse_kubeconfig()
+            try:
+                self.parse_kubeconfig()
+            except:
+                # TODO: log errors to log file
+                pass
             user_input = prompt('kube-shell> ',
                         history=self.history,
                         auto_suggest=AutoSuggestFromHistory(),
