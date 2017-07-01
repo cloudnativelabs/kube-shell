@@ -1,7 +1,9 @@
 
 # WIP kube-shell
 
-[![Build Status](https://travis-ci.org/cloudnativelabs/kube-shell.svg?branch=master)](https://travis-ci.org/cloudnativelabs/kube-shell) [![PyPI version](https://badge.fury.io/py/kube-shell.svg)](https://badge.fury.io/py/kube-shell) [![License](http://img.shields.io/:license-apache-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0.html)
+[![Build Status](https://travis-ci.org/cloudnativelabs/kube-shell.svg?branch=master)](https://travis-ci.org/cloudnativelabs/kube-shell) [![PyPI version](https://badge.fury.io/py/kube-shell.svg)](https://badge.fury.io/py/kube-shell)
+[![License](http://img.shields.io/:license-apache-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0.html)
+[![Gitter chat](http://badges.gitter.im/kube-shell/Lobby.svg)](https://gitter.im/kube-shell/Lobby)
 
 Kube-shell: An integrated shell for working with the Kubernetes CLI
 
@@ -62,6 +64,10 @@ You can run any shell command by prefixing command with "!". For e.g. !ls would 
 Other than generation of suggestions all heavy lifting is done by Python's [prompt toolkit](https://github.com/jonathanslenders/python-prompt-toolkit), [Pygments](http://pygments.org) libraries.
 
 A GO [program](misc/python_eats_cobra.go) is used to generate kubectl's commands, subcommands, arguments, global options and local options in [json](kubeshell/data/cli.json) format. Kube-shell uses generated json file to suggest commands, subcommands, options and args. For server side completion kube-shell uses [client-python](https://github.com/kubernetes-incubator/client-python) libray to fetch the resources.
+
+## Status
+
+Kube-shell should be useful now. But given that its aim is to increase productivity and easy of use, it can be improved in a number of ways. If you have suggestions for improvements or new features, or run into a bug please open an issue [here](https://github.com/cloudnativelabs/kube-shell/issues) or chat in the [Gitter](https://gitter.im/kube-shell/Lobby). 
 
 ## Acknowledgement
 
