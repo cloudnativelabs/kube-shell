@@ -1,9 +1,9 @@
 
-# kube-shell
+# WIP kube-shell
 
 [![Build Status](https://travis-ci.org/cloudnativelabs/kube-shell.svg?branch=master)](https://travis-ci.org/cloudnativelabs/kube-shell) [![PyPI version](https://badge.fury.io/py/kube-shell.svg)](https://badge.fury.io/py/kube-shell) [![License](http://img.shields.io/:license-apache-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0.html)
 
-Kubernetes shell: An integrated shell for working with the Kubernetes CLI
+Kube-shell: An integrated shell for working with the Kubernetes CLI
 
 Under the hood kube-shell still calls kubectl. Kube-shell aims to provide ease-of-use of kubectl and increasing productivity. 
 
@@ -11,35 +11,35 @@ Under the hood kube-shell still calls kubectl. Kube-shell aims to provide ease-o
 
 #### Auto Completion of Commands and Options with in-line documentation
 
-![](http://i.imgur.com/bAWZt4c.gif)
+![](http://i.imgur.com/dfelkKr.gif)
 
 #### Fish-Style Auto Suggestions
 
-![](http://i.imgur.com/ybka6d5.png)
+![](http://i.imgur.com/7VciOuR.png)
 
 #### Command History
 
 You can use up-arrow and down-arrow to walk through the history of commands executed. Also up-arrow partial string matching is possible. For e.g. enter 'kubectl get' and use up-arrow and down-arrow to browse through all kubectl get commands. You could also use CTRL+r to search from the history of commands.
 
-![](http://i.imgur.com/lHEMAYt.png)
+![](http://i.imgur.com/xsIM3QV.png)
 
 #### Fuzzy Searching
 
-![](http://i.imgur.com/DQExE7e.png)
+![](http://i.imgur.com/tW9oAUO.png)
 
 #### Server Side Auto Completion
 
-![](http://i.imgur.com/hbRy0Rr.gif)
-
-#### vi editing mode
-
-Press ESC you have all key bindings (w: next word, b: prev word) to move across the words.
+![](http://i.imgur.com/RAfHXjx.gif)
 
 #### Context information
 
 Details of current context from kubeconfig is always readily displayed on the bottom toolbar.
 
-![](http://i.imgur.com/af2ZPfv.png)
+![](http://i.imgur.com/DAWCxa6.png)
+
+#### vi editing mode
+
+Press ESC you have all key bindings (w: next word, b: prev word) to move across the words.
 
 ## Installation
 
@@ -55,11 +55,13 @@ At the kube-shell command prompt you can run exit or press F10 to exit the shell
 
 By default drop-down suggestion list also displays in-line documentation, you can turn on/off inline documnetation by pressing F4 button.
 
+You can run any shell command by prefixing command with "!". For e.g. !ls would list from the current directory.
+
 ## Under the hood
 
 Other than generation of suggestions all heavy lifting is done by Python's [prompt toolkit](https://github.com/jonathanslenders/python-prompt-toolkit), [Pygments](http://pygments.org) libraries.
 
-A GO [program](misc/python_eats_cobra.go) is used to generate kubectl's commands, subcommands, arguments, global options and local options in [json](kubeshell/data/cli.json) format. Kube-shell uses json file to suggest commands, subcommands, options and args. For server side completion kube-shell uses [client-python](https://github.com/kubernetes-incubator/client-python) libray to fetch the resources.
+A GO [program](misc/python_eats_cobra.go) is used to generate kubectl's commands, subcommands, arguments, global options and local options in [json](kubeshell/data/cli.json) format. Kube-shell uses generated json file to suggest commands, subcommands, options and args. For server side completion kube-shell uses [client-python](https://github.com/kubernetes-incubator/client-python) libray to fetch the resources.
 
 ## Acknowledgement
 
