@@ -120,6 +120,11 @@ class Kubeshell(object):
                 click.clear()
             elif user_input == "exit":
                 sys.exit()
+
+            # if execute shell command then strip "!"
+            if user_input.startswith("!"):
+                user_input = user_input[1:]
+
             if user_input:
                 if '-o' in user_input and 'json' in user_input:
                     user_input = user_input + ' | pygmentize -l json'

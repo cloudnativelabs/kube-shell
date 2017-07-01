@@ -85,7 +85,8 @@ class KubectlCompleter(Completer):
 
         for index, token in enumerate(tokens):
 
-            # if --all-namespaces or --namespace option is passed overide the namespace info from the kubeconfig
+            # if --all-namespaces or --namespace option is passed overide the namespace
+            # info from the kubeconfig with namespace found below logic
             if token == "--all-namespaces":
                 namespace = "all"
             if token.startswith("--namespace"):
@@ -181,6 +182,11 @@ class KubectlCompleter(Completer):
                             self.help_msg = key_map['subcommands'][suggestion]['help']
                         yield Completion(suggestion, -len(last_token), display=suggestion, display_meta=self.help_msg)
             if word_before_cursor == "":
+                if last_token == "--namespace":
+                    namespaces = self.get_resources("namespace")
+                    for ns in namespaces:
+                        yield Completion(ns[0])
+                    return
                 for cmd in key_map['subcommands'].keys():
                     if self.inline_help:
                         self.help_msg = key_map['subcommands'][cmd]['help']
@@ -217,6 +223,11 @@ class KubectlCompleter(Completer):
                         for arg in suggestions:
                             yield Completion(arg, -len(last_token))
             elif word_before_cursor == "":
+                if last_token == "--namespace":
+                    namespaces = self.get_resources("namespace")
+                    for ns in namespaces:
+                        yield Completion(ns[0])
+                    return
                 subcommands = key_map['subcommands'].keys()
                 for subcommand in subcommands:
                     if self.inline_help:
@@ -226,7 +237,13 @@ class KubectlCompleter(Completer):
                 for arg in args:
                     yield Completion(arg)
         elif state == "KUBECTL_ARG":
+            last_token = tokens[-1]
             if word_before_cursor == "":
+                if last_token == "--namespace":
+                    namespaces = self.get_resources("namespace")
+                    for ns in namespaces:
+                        yield Completion(ns[0])
+                    return
                 resources = self.get_resources(arg, namespace)
                 if resources:
                     for resourceName, namespace in resources:
@@ -248,6 +265,11 @@ class KubectlCompleter(Completer):
                         if self.inline_help:
                             help_msg = self.kubectl_dict['kubectl']['options'][global_opt]['help']
                         yield Completion(global_opt, -len(word_before_cursor), display=global_opt, display_meta=self.help_msg)
+            if last_token == "--namespace":
+                namespaces = self.get_resources("namespace")
+                for ns in namespaces:
+                    yield Completion(ns[0])
+                return
         else:
             pass
         return

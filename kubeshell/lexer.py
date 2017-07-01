@@ -19,12 +19,12 @@ class KubectlLexer(RegexLexer):
                 suffix=r'\b'),
              Literal.String),
             (words(
-                tuple(completer.all_args),
+                tuple(completer.all_commands),
                 prefix=r'\b',
                 suffix=r'\b'),
              Name.Class),
             (words(
-                tuple(completer.all_commands),
+                tuple(completer.all_args),
                 prefix=r'\b',
                 suffix=r'\b'),
              Name.Class),
