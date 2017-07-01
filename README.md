@@ -43,9 +43,10 @@ Press ESC you have all key bindings (w: next word, b: prev word) to move across 
 
 ## Installation
 
-The kube-shell requires python and [`pip`](https://pypi.python.org/pypi/pip) to install. You can install the kube-shell using `pip`:
+The kube-shell requires Python 3 and [`pip`](https://pypi.python.org/pypi/pip) to install. You can install the kube-shell using `pip`:
+
 ``` bash
-    $ pip install kube-shell
+    $ pip3 install kube-shell
 ```
 ## Usage
 
