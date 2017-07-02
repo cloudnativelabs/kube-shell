@@ -94,8 +94,7 @@ class Kubeshell(object):
         try:
             KubeConfig.switch_to_next_cluster()
             Kubeshell.clustername, Kubeshell.user, Kubeshell.namespace = KubeConfig.parse_kubeconfig()
-        except  Exception, e:
-            print(str(e))
+        except  Exception as e:
             # TODO: log errors to log file
             pass
 

@@ -278,7 +278,7 @@ class KubectlCompleter(Completer):
         resources = []
         try:
             config.load_kube_config()
-        except  Exception, e:
+        except  Exception as e:
             # TODO: log errors to log file
             return resources
 
