@@ -276,7 +276,11 @@ class KubectlCompleter(Completer):
 
     def get_resources(self, resource, namespace="all"):
         resources = []
-        config.load_kube_config()
+        try:
+            config.load_kube_config()
+        except  Exception, e:
+            # TODO: log errors to log file
+            return resources
 
         v1 = client.CoreV1Api()
         v1Beta1 = client.AppsV1beta1Api()
