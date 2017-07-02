@@ -1,6 +1,19 @@
 from kubeshell import __version__
 from setuptools import setup, find_packages
 
+import sys
+
+version = sys.version_info
+error_msg = "kube-shell needs Python>=2.7.10. Found %s" % sys.version
+
+if version.major == 2:
+    if version.minor < 7:
+        sys.exit(error_msg)
+    else:
+        if version.micro < 10:
+            sys.exit(error_msg)
+
+
 requires = [
     'prompt-toolkit>=1.0.0,<1.1.0',
     'Pygments>=2.1.3,<3.0.0',
@@ -34,7 +47,6 @@ setup(
         'Natural Language :: English',
         'License :: OSI Approved :: Apache Software License',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.3',
