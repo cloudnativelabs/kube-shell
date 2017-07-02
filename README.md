@@ -1,9 +1,7 @@
 
 # WIP kube-shell
 
-[![Build Status](https://travis-ci.org/cloudnativelabs/kube-shell.svg?branch=master)](https://travis-ci.org/cloudnativelabs/kube-shell) [![PyPI version](https://badge.fury.io/py/kube-shell.svg)](https://badge.fury.io/py/kube-shell)
-[![License](http://img.shields.io/:license-apache-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0.html)
-[![Gitter chat](http://badges.gitter.im/kube-shell/Lobby.svg)](https://gitter.im/kube-shell/Lobby)
+[![Build Status](https://travis-ci.org/cloudnativelabs/kube-shell.svg?branch=master)](https://travis-ci.org/cloudnativelabs/kube-shell) [![PyPI version](https://badge.fury.io/py/kube-shell.svg)](https://badge.fury.io/py/kube-shell) [![PyPI](https://img.shields.io/pypi/pyversions/saws.svg)](https://pypi.python.org/pypi/saws/) [![License](http://img.shields.io/:license-apache-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0.html) [![Gitter chat](http://badges.gitter.im/kube-shell/Lobby.svg)](https://gitter.im/kube-shell/Lobby)
 
 Kube-shell: An integrated shell for working with the Kubernetes CLI
 
