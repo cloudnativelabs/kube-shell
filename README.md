@@ -33,9 +33,9 @@ You can use up-arrow and down-arrow to walk through the history of commands exec
 
 #### Context information
 
-Details of current context from kubeconfig is always readily displayed on the bottom toolbar.
+Details of current context from kubeconfig is always readily displayed on the bottom toolbar. By pressing F4 button you can switch between the clusters.
 
-![](http://i.imgur.com/DAWCxa6.png)
+![](http://i.imgur.com/Z1UF56R.png)
 
 #### vi editing mode
 
