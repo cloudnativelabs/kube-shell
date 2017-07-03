@@ -18,26 +18,26 @@ class KubectlLexer(RegexLexer):
                 prefix=r'\b',
                 suffix=r'\b'),
              Literal.String),
-            (words(
-                tuple(completer.all_commands),
-                prefix=r'\b',
-                suffix=r'\b'),
-             Name.Class),
-            (words(
-                tuple(completer.all_args),
-                prefix=r'\b',
-                suffix=r'\b'),
-             Name.Class),
-            (words(
-                tuple(completer.all_opts),
-                prefix=r'',
-                suffix=r'\b'),
-            Keyword),
-            (words(
-                tuple(completer.global_opts),
-                prefix=r'',
-                suffix=r'\b'),
-            Keyword),
+            # (words(
+            #     tuple(completer.all_commands),
+            #     prefix=r'\b',
+            #     suffix=r'\b'),
+            #  Name.Class),
+            # (words(
+            #     tuple(completer.all_args),
+            #     prefix=r'\b',
+            #     suffix=r'\b'),
+            #  Name.Class),
+            # (words(
+            #     tuple(completer.all_opts),
+            #     prefix=r'',
+            #     suffix=r'\b'),
+            # Keyword),
+            # (words(
+            #     tuple(completer.global_opts),
+            #     prefix=r'',
+            #     suffix=r'\b'),
+            # Keyword),
             # Everything else
             (r'.*\n', Text),
         ]
