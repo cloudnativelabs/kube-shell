@@ -152,17 +152,16 @@ class KubectlCompleter(Completer):
 
         state, command, arg, key_map, namespace = self.parse_tokens(cmdline)
 
+        top_level_commands = ["kubectl", "clear", "exit"]
         if state == "INIT":
-            self.help_msg = ""
-            if self.inline_help:
-                self.help_msg = display_meta=key_map['kubectl']['help']
             if len(tokens) == 0:
-                yield Completion("kubectl", start_position=0, display="kubectl", display_meta=self.help_msg)
+                for suggestion in top_level_commands:
+                    yield Completion(suggestion)
                 return
             if len(tokens) == 1 and word_before_cursor == tokens[0]:
-                suggestions = fuzzyfinder(tokens[0], ['kubectl'])
+                suggestions = fuzzyfinder(tokens[0], top_level_commands)
                 for suggestion in suggestions:
-                    yield Completion(suggestion, -len(tokens[0]), display="kubectl", display_meta=self.help_msg)
+                    yield Completion(suggestion, -len(tokens[0]))
         elif state == "KUBECTL":
             last_token = tokens[-1]
             self.help_msg = ""
