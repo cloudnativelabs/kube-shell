@@ -33,6 +33,7 @@ class KubeConfig(object):
     clustername = user = ""
     namespace = "default"
     current_context_index = 0
+    current_context_name = ""
 
     @staticmethod
     def parse_kubeconfig():
@@ -51,6 +52,7 @@ class KubeConfig(object):
                         for index, context in enumerate(v):
                             if context['name'] == current_context:
                                 KubeConfig.current_context_index = index
+                                KubeConfig.current_context_name = context['name']
                                 if 'cluster' in context['context']:
                                     KubeConfig.clustername = context['context']['cluster']
                                 if 'namespace' in context['context']:
@@ -77,6 +79,18 @@ class KubeConfig(object):
                         cmd_process.wait()
         return
 
+    @staticmethod
+    def switch_to_next_namespace(current_namespace):
+        namespace_resources = completer.get_resources("namespace")
+        namespaces = []
+        for res in namespace_resources:
+            namespaces.append(res[0])
+        namespaces.sort()
+        index = (namespaces.index(current_namespace)+1) % len(namespaces)
+        next_namespace = namespaces[index]
+        kubectl_config_set_namespace = "kubectl config set-context " + KubeConfig.current_context_name + " --namespace=" + next_namespace
+        cmd_process = subprocess.Popen(kubectl_config_set_namespace, shell=True, stdout=subprocess.PIPE)
+        cmd_process.wait()
 
 class Kubeshell(object):
 
@@ -93,6 +107,15 @@ class Kubeshell(object):
     def _(event):
         try:
             KubeConfig.switch_to_next_cluster()
+            Kubeshell.clustername, Kubeshell.user, Kubeshell.namespace = KubeConfig.parse_kubeconfig()
+        except  Exception as e:
+            # TODO: log errors to log file
+            pass
+
+    @registry.add_binding(Keys.F5)
+    def _(event):
+        try:
+            KubeConfig.switch_to_next_namespace(Kubeshell.namespace)
             Kubeshell.clustername, Kubeshell.user, Kubeshell.namespace = KubeConfig.parse_kubeconfig()
         except  Exception as e:
             # TODO: log errors to log file

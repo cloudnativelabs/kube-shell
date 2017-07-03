@@ -33,9 +33,9 @@ You can use up-arrow and down-arrow to walk through the history of commands exec
 
 #### Context information
 
-Details of current context from kubeconfig is always readily displayed on the bottom toolbar. By pressing F4 button you can switch between the clusters.
+Details of current context from kubeconfig is always readily displayed on the bottom toolbar. By pressing F4 button you can switch between the clusters and using F5 can switch between namespaces.
 
-![](http://i.imgur.com/Z1UF56R.png)
+![](http://i.imgur.com/MJLgcj3.png)
 
 #### vi editing mode
 

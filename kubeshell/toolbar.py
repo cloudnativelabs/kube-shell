@@ -25,7 +25,7 @@ class Toolbar(object):
             return [
                 (Keyword, ' [F4] Cluster: '),
                 (Token.Toolbar, get_cluster_name()),
-                (Keyword, ' Namespace: '),
+                (Keyword, ' [F5] Namespace: '),
                 (Token.Toolbar, get_namespace()),
                 (Keyword, ' User: '),
                 (Token.Toolbar, get_user()),
