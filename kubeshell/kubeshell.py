@@ -3,10 +3,6 @@ from __future__ import print_function, absolute_import, unicode_literals
 from prompt_toolkit import prompt
 from prompt_toolkit.history import FileHistory
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
-from pygments.style import Style
-from pygments.token import Token
-from pygments.token import Keyword, Name, Operator, Generic, Literal, Text
-from pygments.styles.default import DefaultStyle
 from prompt_toolkit.key_binding.defaults import load_key_bindings_for_prompt
 from prompt_toolkit.keys import Keys
 
@@ -22,7 +18,7 @@ import subprocess
 import yaml
 
 
-inline_help=True
+inline_help = True
 
 registry = load_key_bindings_for_prompt()
 completer = KubectlCompleter()
@@ -43,23 +39,20 @@ class KubeConfig(object):
         with open(os.path.expanduser("~/.kube/config"), "r") as fd:
             docs = yaml.load_all(fd)
             for doc in docs:
-                current_context = ""
-                for k,v in doc.items():
-                    if k == "current-context":
-                        current_context = v
-                for k,v in doc.items():
-                    if k == "contexts":
-                        for index, context in enumerate(v):
-                            if context['name'] == current_context:
-                                KubeConfig.current_context_index = index
-                                KubeConfig.current_context_name = context['name']
-                                if 'cluster' in context['context']:
-                                    KubeConfig.clustername = context['context']['cluster']
-                                if 'namespace' in context['context']:
-                                    KubeConfig.namespace = context['context']['namespace']
-                                if 'user' in context['context']:
-                                    KubeConfig.user = context['context']['user']
-                                return (KubeConfig.clustername, KubeConfig.user, KubeConfig.namespace)
+                current_context = doc.get("current-context", "")
+                contexts = doc.get("contexts")
+                if contexts:
+                    for index, context in enumerate(contexts):
+                        if context['name'] == current_context:
+                            KubeConfig.current_context_index = index
+                            KubeConfig.current_context_name = context['name']
+                            if 'cluster' in context['context']:
+                                KubeConfig.clustername = context['context']['cluster']
+                            if 'namespace' in context['context']:
+                                KubeConfig.namespace = context['context']['namespace']
+                            if 'user' in context['context']:
+                                KubeConfig.user = context['context']['user']
+                            return (KubeConfig.clustername, KubeConfig.user, KubeConfig.namespace)
         return ("", "", "")
 
     @staticmethod
@@ -70,27 +63,26 @@ class KubeConfig(object):
         with open(os.path.expanduser("~/.kube/config"), "r") as fd:
             docs = yaml.load_all(fd)
             for doc in docs:
-                for k,v in doc.items():
-                    if k == "contexts":
-                        KubeConfig.current_context_index = (KubeConfig.current_context_index+1) % len(v)
-                        cluster_name = v[KubeConfig.current_context_index]['name']
-                        kubectl_config_use_context = "kubectl config use-context " + cluster_name
-                        cmd_process = subprocess.Popen(kubectl_config_use_context, shell=True, stdout=subprocess.PIPE)
-                        cmd_process.wait()
+                contexts = doc.get("contexts")
+                if contexts:
+                    KubeConfig.current_context_index = (KubeConfig.current_context_index+1) % len(contexts)
+                    cluster_name = contexts[KubeConfig.current_context_index]['name']
+                    kubectl_config_use_context = "kubectl config use-context " + cluster_name
+                    cmd_process = subprocess.Popen(kubectl_config_use_context, shell=True, stdout=subprocess.PIPE)
+                    cmd_process.wait()
         return
 
     @staticmethod
     def switch_to_next_namespace(current_namespace):
         namespace_resources = completer.get_resources("namespace")
-        namespaces = []
-        for res in namespace_resources:
-            namespaces.append(res[0])
-        namespaces.sort()
-        index = (namespaces.index(current_namespace)+1) % len(namespaces)
+        namespaces = sorted(res[0] for res in namespace_resources)
+        index = (namespaces.index(current_namespace) + 1) % len(namespaces)
         next_namespace = namespaces[index]
-        kubectl_config_set_namespace = "kubectl config set-context " + KubeConfig.current_context_name + " --namespace=" + next_namespace
+        fmt = "kubectl config set-context {} --namespace={}"
+        kubectl_config_set_namespace = fmt.format(KubeConfig.current_context_name, next_namespace)
         cmd_process = subprocess.Popen(kubectl_config_set_namespace, shell=True, stdout=subprocess.PIPE)
         cmd_process.wait()
+
 
 class Kubeshell(object):
 
@@ -98,9 +90,10 @@ class Kubeshell(object):
     namespace = "default"
 
     def __init__(self, refresh_resources=True):
-        self.history = FileHistory(os.path.expanduser("~/.kube/shell/history"))
-        if not os.path.exists(os.path.expanduser("~/.kube/shell/")):
-            os.makedirs(os.path.expanduser("~/.kube/shell/"))
+        shell_dir = os.path.expanduser("~/.kube/shell/")
+        self.history = FileHistory(os.path.join(shell_dir, "history"))
+        if not os.path.exists(shell_dir):
+            os.makedirs(shell_dir)
         self.toolbar = Toolbar(self.get_cluster_name, self.get_namespace, self.get_user, self.get_inline_help)
 
     @registry.add_binding(Keys.F4)
@@ -108,7 +101,7 @@ class Kubeshell(object):
         try:
             KubeConfig.switch_to_next_cluster()
             Kubeshell.clustername, Kubeshell.user, Kubeshell.namespace = KubeConfig.parse_kubeconfig()
-        except  Exception as e:
+        except Exception as e:
             # TODO: log errors to log file
             pass
 
@@ -117,17 +110,14 @@ class Kubeshell(object):
         try:
             KubeConfig.switch_to_next_namespace(Kubeshell.namespace)
             Kubeshell.clustername, Kubeshell.user, Kubeshell.namespace = KubeConfig.parse_kubeconfig()
-        except  Exception as e:
+        except Exception as e:
             # TODO: log errors to log file
             pass
 
     @registry.add_binding(Keys.F9)
     def _(event):
         global inline_help
-        if inline_help:
-            inline_help = False
-        else:
-            inline_help = True
+        inline_help = not inline_help
         completer.set_inline_help(inline_help)
 
     @registry.add_binding(Keys.F10)
@@ -152,8 +142,8 @@ class Kubeshell(object):
             return "kube-shell"
 
         if not os.path.exists(os.path.expanduser("~/.kube/config")):
-            click.secho('Kube-shell uses ~/.kube/config for server side completion. Could not find ~/.kube/config. \
-                    Server side completion functionality may not work.', fg='red', blink=True, bold=True)
+            click.secho('Kube-shell uses ~/.kube/config for server side completion. Could not find ~/.kube/config. '
+                    'Server side completion functionality may not work.', fg='red', blink=True, bold=True)
         while True:
             global inline_help
             try:
@@ -184,6 +174,6 @@ class Kubeshell(object):
 
             if user_input:
                 if '-o' in user_input and 'json' in user_input:
-                    user_input = user_input + ' | pygmentize -l json'
+                    user_input += ' | pygmentize -l json'
                 p = subprocess.Popen(user_input, shell=True)
                 p.communicate()
