@@ -152,17 +152,22 @@ class Kubeshell(object):
                 # TODO: log errors to log file
                 pass
             completer.set_namespace(self.namespace)
-            user_input = prompt('kube-shell> ',
-                        history=self.history,
-                        auto_suggest=AutoSuggestFromHistory(),
-                        style=StyleFactory("vim").style,
-                        lexer=KubectlLexer,
-                        get_title=get_title,
-                        enable_history_search=False,
-                        get_bottom_toolbar_tokens=self.toolbar.handler,
-                        vi_mode=True,
-                        key_bindings_registry=registry,
-                        completer=completer)
+
+            try:
+                user_input = prompt('kube-shell> ',
+                            history=self.history,
+                            auto_suggest=AutoSuggestFromHistory(),
+                            style=StyleFactory("vim").style,
+                            lexer=KubectlLexer,
+                            get_title=get_title,
+                            enable_history_search=False,
+                            get_bottom_toolbar_tokens=self.toolbar.handler,
+                            vi_mode=True,
+                            key_bindings_registry=registry,
+                            completer=completer)
+            except (EOFError, KeyboardInterrupt):
+                sys.exit()
+
             if user_input == "clear":
                 click.clear()
             elif user_input == "exit":
