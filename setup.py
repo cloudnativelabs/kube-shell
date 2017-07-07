@@ -15,7 +15,7 @@ if version.major == 2:
 
 
 requires = [
-    'prompt-toolkit>=1.0.0,<1.1.0',
+    'prompt-toolkit>=1.0.10,<1.1.0',
     'Pygments>=2.1.3,<3.0.0',
     'fuzzyfinder>=1.0.0',
     'click>=4.0,<7.0',
