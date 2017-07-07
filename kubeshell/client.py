@@ -1,15 +1,17 @@
 from kubernetes import client, config
 from kubernetes.client.api_client import ApiException
 
+import logging
+
 
 class KubernetesClient(object):
 
     def __init__(self):
+        self.logger = logging.getLogger(__name__)
         try:
             config.load_kube_config()
-        except Exception as e:
-            # TODO: log errors to log file
-            raise(e)
+        except:
+            self.logger.warning("unable to load kube-config")
 
         self.v1 = client.CoreV1Api()
         self.v1Beta1 = client.AppsV1beta1Api()
@@ -25,8 +27,7 @@ class KubernetesClient(object):
         try:
             ret, namespaced_resource = self._call_api_client(resource)
         except ApiException as ae:
-            # TODO: log warning
-            pass
+            self.logger.warning("resource autocomplete disabled, encountered ApiException %d: %s" % (ae.status, ae.reason))
         if ret:
             for i in ret.items:
                 if namespace == "all" or not namespaced_resource:
