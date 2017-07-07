@@ -15,7 +15,7 @@ class KubernetesClient(object):
         self.v1Beta1 = client.AppsV1beta1Api()
         self.extensionsV1Beta1 = client.ExtensionsV1beta1Api()
         self.autoscalingV1Api = client.AutoscalingV1Api()
-        self.rbacAPi = client.RbacAuthorizationV1beta1Api()
+        self.rbacApi = client.RbacAuthorizationV1beta1Api()
         self.batchV1Api = client.BatchV1Api()
         self.batchV2Api = client.BatchV2alpha1Api()
 
@@ -94,10 +94,10 @@ class KubernetesClient(object):
             ret = self.autoscalingV1Api.list_horizontal_pod_autoscaler_for_all_namespaces(watch=False)
         elif resource == "clusterrole":
             namespaced_resource = False
-            ret = self.rbacAPi.list_cluster_role(watch=False)
+            ret = self.rbacApi.list_cluster_role(watch=False)
         elif resource == "clusterrolebinding":
             namespaced_resource = False
-            ret = self.rbacAPi.list_cluster_role_binding(watch=False)
+            ret = self.rbacApi.list_cluster_role_binding(watch=False)
         elif resource == "job":
             ret = self.batchV1Api.list_job_for_all_namespaces(watch=False)
         elif resource == "cronjob":
