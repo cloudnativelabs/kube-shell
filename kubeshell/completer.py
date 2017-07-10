@@ -2,11 +2,14 @@ from __future__ import absolute_import, unicode_literals, print_function
 from subprocess import check_output
 from prompt_toolkit.completion import Completer, Completion
 from fuzzyfinder import fuzzyfinder
+import logging
 import shlex
 import json
 import os
 import os.path
-from kubernetes import client, config
+
+from kubeshell.client import KubernetesClient
+
 
 class KubectlCompleter(Completer):
 
@@ -17,6 +20,8 @@ class KubectlCompleter(Completer):
         self.global_opts = []
         self.inline_help = True
         self.namespace = ""
+        self.kube_client = KubernetesClient()
+        self.logger = logging.getLogger(__name__)
 
         try:
             DATA_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -25,7 +30,7 @@ class KubectlCompleter(Completer):
                 self.kubectl_dict = json.load(json_file)
             self.populate_cmds_args_opts(self.kubectl_dict)
         except Exception as ex:
-            print("got an exception" + ex.message)
+            self.logger.error("got an exception" + ex.message)
 
     def set_inline_help(self, val):
         self.inline_help = val
@@ -124,7 +129,7 @@ class KubectlCompleter(Completer):
             elif state == "KUBECTL_ARG":
                 if token.startswith("--"):
                     continue
-                resources = self.get_resources(arg)
+                resources = self.kube_client.get_resource(arg)
                 if resources:
                     for resource_name, namespace in resources:
                         if token == resource_name:
@@ -182,7 +187,7 @@ class KubectlCompleter(Completer):
                         yield Completion(suggestion, -len(last_token), display=suggestion, display_meta=self.help_msg)
             if word_before_cursor == "":
                 if last_token == "--namespace":
-                    namespaces = self.get_resources("namespace")
+                    namespaces = self.kube_client.get_resource("namespace")
                     for ns in namespaces:
                         yield Completion(ns[0])
                     return
@@ -223,7 +228,7 @@ class KubectlCompleter(Completer):
                             yield Completion(arg, -len(last_token))
             elif word_before_cursor == "":
                 if last_token == "--namespace":
-                    namespaces = self.get_resources("namespace")
+                    namespaces = self.kube_client.get_resource("namespace")
                     for ns in namespaces:
                         yield Completion(ns[0])
                     return
@@ -239,11 +244,11 @@ class KubectlCompleter(Completer):
             last_token = tokens[-1]
             if word_before_cursor == "":
                 if last_token == "--namespace":
-                    namespaces = self.get_resources("namespace")
+                    namespaces = self.kube_client.get_resource("namespace")
                     for ns in namespaces:
                         yield Completion(ns[0])
                     return
-                resources = self.get_resources(arg, namespace)
+                resources = self.kube_client.get_resource(arg, namespace)
                 if resources:
                     for resourceName, namespace in resources:
                         yield Completion(resourceName, display=resourceName, display_meta=namespace)
@@ -265,105 +270,10 @@ class KubectlCompleter(Completer):
                             help_msg = self.kubectl_dict['kubectl']['options'][global_opt]['help']
                         yield Completion(global_opt, -len(word_before_cursor), display=global_opt, display_meta=self.help_msg)
             if last_token == "--namespace":
-                namespaces = self.get_resources("namespace")
+                namespaces = self.kube_client.get_resource("namespace")
                 for ns in namespaces:
                     yield Completion(ns[0])
                 return
         else:
             pass
         return
-
-    def get_resources(self, resource, namespace="all"):
-        resources = []
-        try:
-            config.load_kube_config()
-        except  Exception as e:
-            # TODO: log errors to log file
-            return resources
-
-        v1 = client.CoreV1Api()
-        v1Beta1 = client.AppsV1beta1Api()
-        extensionsV1Beta1 = client.ExtensionsV1beta1Api()
-        autoscalingV1Api = client.AutoscalingV1Api()
-        rbacAPi = client.RbacAuthorizationV1beta1Api()
-        batchV1Api = client.BatchV1Api()
-        batchV2Api = client.BatchV2alpha1Api()
-
-        ret = None
-        namespaced_resource = True
-
-        if resource == "pod":
-            ret = v1.list_pod_for_all_namespaces(watch=False)
-        elif resource == "service":
-            ret = v1.list_service_for_all_namespaces(watch=False)
-        elif resource == "deployment":
-            ret = v1Beta1.list_deployment_for_all_namespaces(watch=False)
-        elif resource == "statefulset":
-            ret = v1Beta1.list_stateful_set_for_all_namespaces(watch=False)
-        elif resource == "node":
-            namespaced_resource = False
-            ret = v1.list_node(watch=False)
-        elif resource == "namespace":
-            namespaced_resource = False
-            ret = v1.list_namespace(watch=False)
-        elif resource == "daemonset":
-            ret = extensionsV1Beta1.list_daemon_set_for_all_namespaces(watch=False)
-        elif resource == "networkpolicy":
-            ret = extensionsV1Beta1.list_network_policy_for_all_namespaces(watch=False)
-        elif resource == "thirdpartyresource":
-            namespaced_resource = False
-            ret = extensionsV1Beta1.list_third_party_resource(watch=False)
-        elif resource == "replicationcontroller":
-            ret = v1.list_replication_controller_for_all_namespaces(watch=False)
-        elif resource == "replicaset":
-            ret = extensionsV1Beta1.list_replica_set_for_all_namespaces(watch=False)
-        elif resource == "ingress":
-            ret = extensionsV1Beta1.list_ingress_for_all_namespaces(watch=False)
-        elif resource == "endpoints":
-            ret = v1.list_endpoints_for_all_namespaces(watch=False)
-        elif resource == "configmap":
-            ret = v1.list_config_map_for_all_namespaces(watch=False)
-        elif resource == "event":
-            ret = v1.list_event_for_all_namespaces(watch=False)
-        elif resource == "limitrange":
-            ret = v1.list_limit_range_for_all_namespaces(watch=False)
-        elif resource == "configmap":
-            ret = v1.list_config_map_for_all_namespaces(watch=False)
-        elif resource == "persistentvolume":
-            namespaced_resource = False
-            ret = v1.list_persistent_volume(watch=False)
-        elif resource == "secret":
-            ret = v1.list_secret_for_all_namespaces(watch=False)
-        elif resource == "resourcequota":
-            ret = v1.list_resource_quota_for_all_namespaces(watch=False)
-        elif resource == "componentstatus":
-            namespaced_resource = False
-            ret = v1.list_component_status(watch=False)
-        elif resource == "podtemplate":
-            ret = v1.list_pod_template_for_all_namespaces(watch=False)
-        elif resource == "serviceaccount":
-            ret = v1.list_service_account_for_all_namespaces(watch=False)
-        elif resource == "horizontalpodautoscaler":
-            ret = autoscalingV1Api.list_horizontal_pod_autoscaler_for_all_namespaces(watch=False)
-        elif resource == "clusterrole":
-            namespaced_resource = False
-            ret = rbacAPi.list_cluster_role(watch=False)
-        elif resource == "clusterrolebinding":
-            namespaced_resource = False
-            ret = rbacAPi.list_cluster_role_binding(watch=False)
-        elif resource == "job":
-            ret = batchV1Api.list_job_for_all_namespaces(watch=False)
-        elif resource == "cronjob":
-            ret = batchV2Api.list_cron_job_for_all_namespaces(watch=False)
-        elif resource == "scheduledjob":
-            ret = batchV2Api.list_scheduled_job_for_all_namespaces(watch=False)
-
-        if ret:
-            for i in ret.items:
-                if namespace == "all" or not namespaced_resource:
-                    resources.append((i.metadata.name, i.metadata.namespace))
-                elif namespace == i.metadata.namespace:
-                    resources.append((i.metadata.name, i.metadata.namespace))
-            return resources
-        return None
-

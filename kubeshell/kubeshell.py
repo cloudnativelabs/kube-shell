@@ -16,10 +16,10 @@ import click
 import sys
 import subprocess
 import yaml
-
+import logging
+logger = logging.getLogger(__name__)
 
 inline_help = True
-
 registry = load_key_bindings_for_prompt()
 completer = KubectlCompleter()
 
@@ -102,8 +102,7 @@ class Kubeshell(object):
             KubeConfig.switch_to_next_cluster()
             Kubeshell.clustername, Kubeshell.user, Kubeshell.namespace = KubeConfig.parse_kubeconfig()
         except Exception as e:
-            # TODO: log errors to log file
-            pass
+            logger.warning("failed switching clusters", exc_info=1)
 
     @registry.add_binding(Keys.F5)
     def _(event):
@@ -111,8 +110,7 @@ class Kubeshell(object):
             KubeConfig.switch_to_next_namespace(Kubeshell.namespace)
             Kubeshell.clustername, Kubeshell.user, Kubeshell.namespace = KubeConfig.parse_kubeconfig()
         except Exception as e:
-            # TODO: log errors to log file
-            pass
+            logger.warning("failed namespace switching", exc_info=1)
 
     @registry.add_binding(Keys.F9)
     def _(event):
@@ -141,6 +139,7 @@ class Kubeshell(object):
         def get_title():
             return "kube-shell"
 
+        logger.info("running kube-shell event loop")
         if not os.path.exists(os.path.expanduser("~/.kube/config")):
             click.secho('Kube-shell uses ~/.kube/config for server side completion. Could not find ~/.kube/config. '
                     'Server side completion functionality may not work.', fg='red', blink=True, bold=True)
@@ -149,8 +148,7 @@ class Kubeshell(object):
             try:
                 Kubeshell.clustername, Kubeshell.user, Kubeshell.namespace = KubeConfig.parse_kubeconfig()
             except:
-                # TODO: log errors to log file
-                pass
+                logger.error("unable to parse ~/.kube/config %s", exc_info=1)
             completer.set_namespace(self.namespace)
 
             try:
