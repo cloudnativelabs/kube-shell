@@ -19,7 +19,7 @@ requires = [
     'Pygments>=2.1.3,<3.0.0',
     'fuzzyfinder>=1.0.0',
     'click>=4.0,<7.0',
-    'kubernetes>=0.10.0',
+    'kubernetes>=0.10.0,<3.0.0',
 ]
 
 setup(
