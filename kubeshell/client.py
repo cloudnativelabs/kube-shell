@@ -34,9 +34,9 @@ class KubernetesClient(object):
             ret, namespaced_resource = self._call_api_client(resource)
         except ApiException as ae:
             self.logger.warning("resource autocomplete disabled, encountered "
-                                "ApiException %d: %s", ae.status, ae.reason)
+                                "ApiException", exc_info=1)
         except (NewConnectionError, MaxRetryError, ConnectTimeoutError):
-            self.logger.warning("unable to connect to k8 cluster")
+            self.logger.warning("unable to connect to k8 cluster", exc_info=1)
         if ret:
             for i in ret.items:
                 if namespace == "all" or not namespaced_resource:
