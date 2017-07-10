@@ -2,12 +2,14 @@ from __future__ import absolute_import, unicode_literals, print_function
 from subprocess import check_output
 from prompt_toolkit.completion import Completer, Completion
 from fuzzyfinder import fuzzyfinder
+import logging
 import shlex
 import json
 import os
 import os.path
 
 from kubeshell.client import KubernetesClient
+
 
 class KubectlCompleter(Completer):
 
@@ -19,6 +21,7 @@ class KubectlCompleter(Completer):
         self.inline_help = True
         self.namespace = ""
         self.kube_client = KubernetesClient()
+        self.logger = logging.getLogger(__name__)
 
         try:
             DATA_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -27,7 +30,7 @@ class KubectlCompleter(Completer):
                 self.kubectl_dict = json.load(json_file)
             self.populate_cmds_args_opts(self.kubectl_dict)
         except Exception as ex:
-            print("got an exception" + ex.message)
+            self.logger.error("got an exception" + ex.message)
 
     def set_inline_help(self, val):
         self.inline_help = val

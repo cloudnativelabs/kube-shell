@@ -1,37 +1,53 @@
 import os
+import sys
+import logging
+import traceback
+import logging.config
 
-if not os.path.exists(os.path.expanduser("~/.kube-shell")):
+if not os.path.exists(os.path.expanduser("~/.kube/shell")):
     try:
-        os.makedirs(os.path.expanduser("~/.kube-shell"))
+        os.makedirs(os.path.expanduser("~/.kube/shell"))
     except OSError:
-        pass
+        print("failed to make config dirs for kube-shell")
+        traceback.print_exc(file=sys.stdout)
 
-logfile = os.path.expanduser("~/.kube-shell/debug.log")
+logfile = os.path.expanduser("~/.kube/shell/error.log")
 loggingConf = {
     "version": 1,
-    "disable_existing_loggers": False,
     "formatters": {
         "default": {
-            "format": "%(asctime)s %[levelname]-8s %(funcName)s:%(lineno)s - %(message)s",
+            "format": "%(asctime)-15s [%(levelname)-4s] %(name)s %(funcName)s:%(lineno)s - %(message)s",
         }
     },
     "handlers": {
+        "null": {
+            "class": "logging.NullHandler",
+            "level": "ERROR"
+        },
         "file": {
-            "class": "logging.FileHandler",
-            "level": "ERROR",
+            "class": "logging.handlers.RotatingFileHandler",
+            "level": "INFO",
             "formatter": "default",
             "filename": logfile,
+            "backupCount": 3,
+            "maxBytes": 10485760  # 10MB
         }
     },
     "loggers": {
-        "kubeshell": {
-            "level": "ERROR",
-            "handlers": ["file"],
-            "propagate": "no",
-        },
         "": {
             "level": "ERROR",
-            "handlers": ["file"]
+            "handlers": ["file"],
+        },
+        "urllib3": {
+            "level": "ERROR",
+            "handlers": ["file"],
+            "propagate": False
+        },
+        "kubeshell": {
+            "level": "INFO",
+            "handlers": ["file"],
+            "propagate": False
         }
     },
 }
+logging.config.dictConfig(loggingConf)

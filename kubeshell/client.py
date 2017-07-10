@@ -1,7 +1,13 @@
+from urllib3.exceptions import NewConnectionError, ConnectTimeoutError, MaxRetryError
 from kubernetes import client, config
 from kubernetes.client.api_client import ApiException
 
 import logging
+import urllib3
+
+# disable warnings on stdout/stderr from urllib3 connection errors
+ulogger = logging.getLogger("urllib3")
+ulogger.setLevel("ERROR")
 
 
 class KubernetesClient(object):
@@ -23,19 +29,21 @@ class KubernetesClient(object):
 
 
     def get_resource(self, resource, namespace="all"):
-        resources = []
+        ret, resources = None, list()
         try:
             ret, namespaced_resource = self._call_api_client(resource)
         except ApiException as ae:
-            self.logger.warning("resource autocomplete disabled, encountered ApiException %d: %s" % (ae.status, ae.reason))
+            self.logger.warning("resource autocomplete disabled, encountered "
+                                "ApiException %d: %s", ae.status, ae.reason)
+        except (NewConnectionError, MaxRetryError, ConnectTimeoutError):
+            self.logger.warning("unable to connect to k8 cluster")
         if ret:
             for i in ret.items:
                 if namespace == "all" or not namespaced_resource:
                     resources.append((i.metadata.name, i.metadata.namespace))
                 elif namespace == i.metadata.namespace:
                     resources.append((i.metadata.name, i.metadata.namespace))
-            return resources
-        return None
+        return resources
 
     def _call_api_client(self, resource):
         namespaced_resource = True
