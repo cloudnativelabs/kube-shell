@@ -8,6 +8,7 @@ import urllib3
 # disable warnings on stdout/stderr from urllib3 connection errors
 ulogger = logging.getLogger("urllib3")
 ulogger.setLevel("ERROR")
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 class KubernetesClient(object):
