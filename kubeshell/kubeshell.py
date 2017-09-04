@@ -10,6 +10,7 @@ from kubeshell.style import StyleFactory
 from kubeshell.completer import KubectlCompleter
 from kubeshell.lexer import KubectlLexer
 from kubeshell.toolbar import Toolbar
+from kubeshell.client import KubernetesClient
 
 import os
 import click
@@ -22,6 +23,7 @@ logger = logging.getLogger(__name__)
 inline_help = True
 registry = load_key_bindings_for_prompt()
 completer = KubectlCompleter()
+client = KubernetesClient()
 
 
 class KubeConfig(object):
@@ -74,7 +76,7 @@ class KubeConfig(object):
 
     @staticmethod
     def switch_to_next_namespace(current_namespace):
-        namespace_resources = completer.get_resources("namespace")
+        namespace_resources = client.get_resource("namespace")
         namespaces = sorted(res[0] for res in namespace_resources)
         index = (namespaces.index(current_namespace) + 1) % len(namespaces)
         next_namespace = namespaces[index]
