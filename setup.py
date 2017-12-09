@@ -30,7 +30,6 @@ setup(
     url='https://github.com/cloudnativelabs/kube-shell',
     packages=find_packages(),
     package_data={'kubeshell': ['data/cli.json']},
-    include_package_data=True,
     zip_safe=False,
     install_requires=requires,
     entry_points={
