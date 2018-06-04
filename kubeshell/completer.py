@@ -38,8 +38,11 @@ class KubectlCompleter(Completer):
     def get_completions(self, document, complete_event, smart_completion=None):
         word_before_cursor = document.get_word_before_cursor(WORD=True)
         cmdline = document.text_before_cursor.strip()
-        tokens = shlex.split(cmdline)
-        _, _, suggestions = self.parser.parse_tokens(tokens)
-        valid_keys = fuzzyfinder(word_before_cursor, suggestions.keys())
-        for key in valid_keys:
-            yield Completion(key, -len(word_before_cursor), display=key, display_meta=suggestions[key])
+        try:
+            tokens = shlex.split(cmdline)
+            _, _, suggestions = self.parser.parse_tokens(tokens)
+            valid_keys = fuzzyfinder(word_before_cursor, suggestions.keys())
+            for key in valid_keys:
+                yield Completion(key, -len(word_before_cursor), display=key, display_meta=suggestions[key])
+        except ValueError:
+            pass
