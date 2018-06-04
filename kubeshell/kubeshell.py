@@ -10,7 +10,7 @@ from kubeshell.style import StyleFactory
 from kubeshell.completer import KubectlCompleter
 from kubeshell.lexer import KubectlLexer
 from kubeshell.toolbar import Toolbar
-from kubeshell.client import KubernetesClient
+from kubeshell.client import KubernetesClient, kubeconfig_filepath
 
 import os
 import click
@@ -24,7 +24,6 @@ inline_help = True
 registry = load_key_bindings_for_prompt()
 completer = KubectlCompleter()
 client = KubernetesClient()
-kubeconfig_filepath = os.getenv("KUBECONFIG") or "~/.kube/config"
 
 
 class KubeConfig(object):
