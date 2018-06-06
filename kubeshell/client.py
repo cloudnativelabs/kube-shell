@@ -3,6 +3,7 @@ from urllib3.exceptions import NewConnectionError, ConnectTimeoutError, MaxRetry
 from kubernetes import client, config
 from kubernetes.client.api_client import ApiException
 
+import os
 import logging
 import urllib3
 
@@ -10,6 +11,7 @@ import urllib3
 ulogger = logging.getLogger("urllib3")
 ulogger.setLevel("ERROR")
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+kubeconfig_filepath = os.getenv("KUBECONFIG") or "~/.kube/config"
 
 
 class KubernetesClient(object):
@@ -17,7 +19,8 @@ class KubernetesClient(object):
     def __init__(self):
         self.logger = logging.getLogger(__name__)
         try:
-            config.load_kube_config()
+            config_file = os.path.expanduser(kubeconfig_filepath)
+            config.load_kube_config(config_file=config_file)
         except:
             self.logger.warning("unable to load kube-config")
 
@@ -28,7 +31,6 @@ class KubernetesClient(object):
         self.rbacApi = client.RbacAuthorizationV1beta1Api()
         self.batchV1Api = client.BatchV1Api()
         self.batchV2Api = client.BatchV2alpha1Api()
-
 
     def get_resource(self, resource, namespace="all"):
         ret, resources = None, list()

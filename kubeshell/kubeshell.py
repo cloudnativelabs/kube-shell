@@ -10,7 +10,7 @@ from kubeshell.style import StyleFactory
 from kubeshell.completer import KubectlCompleter
 from kubeshell.lexer import KubectlLexer
 from kubeshell.toolbar import Toolbar
-from kubeshell.client import KubernetesClient
+from kubeshell.client import KubernetesClient, kubeconfig_filepath
 
 import os
 import click
@@ -35,10 +35,10 @@ class KubeConfig(object):
 
     @staticmethod
     def parse_kubeconfig():
-        if not os.path.exists(os.path.expanduser("~/.kube/config")):
+        if not os.path.exists(os.path.expanduser(kubeconfig_filepath)):
             return ("", "", "")
 
-        with open(os.path.expanduser("~/.kube/config"), "r") as fd:
+        with open(os.path.expanduser(kubeconfig_filepath), "r") as fd:
             docs = yaml.load_all(fd)
             for doc in docs:
                 current_context = doc.get("current-context", "")
@@ -59,10 +59,10 @@ class KubeConfig(object):
 
     @staticmethod
     def switch_to_next_cluster():
-        if not os.path.exists(os.path.expanduser("~/.kube/config")):
+        if not os.path.exists(os.path.expanduser(kubeconfig_filepath)):
             return
 
-        with open(os.path.expanduser("~/.kube/config"), "r") as fd:
+        with open(os.path.expanduser(kubeconfig_filepath), "r") as fd:
             docs = yaml.load_all(fd)
             for doc in docs:
                 contexts = doc.get("contexts")
@@ -142,15 +142,16 @@ class Kubeshell(object):
             return "kube-shell"
 
         logger.info("running kube-shell event loop")
-        if not os.path.exists(os.path.expanduser("~/.kube/config")):
-            click.secho('Kube-shell uses ~/.kube/config for server side completion. Could not find ~/.kube/config. '
-                    'Server side completion functionality may not work.', fg='red', blink=True, bold=True)
+        if not os.path.exists(os.path.expanduser(kubeconfig_filepath)):
+            click.secho('Kube-shell uses {0} for server side completion. Could not find {0}. '
+                    'Server side completion functionality may not work.'.format(kubeconfig_filepath),
+                        fg='red', blink=True, bold=True)
         while True:
             global inline_help
             try:
                 Kubeshell.clustername, Kubeshell.user, Kubeshell.namespace = KubeConfig.parse_kubeconfig()
             except:
-                logger.error("unable to parse ~/.kube/config %s", exc_info=1)
+                logger.error("unable to parse {} %s".format(kubeconfig_filepath), exc_info=1)
             completer.set_namespace(self.namespace)
 
             try:
