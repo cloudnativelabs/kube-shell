@@ -67,7 +67,7 @@ Installation
 ------------
 
 The kube-shell requires python and
-```pip`` <https://pypi.python.org/pypi/pip>`__ to install. You can
+`pip <https://pypi.python.org/pypi/pip>`__ to install. You can
 install the kube-shell using ``pip``:
 
 .. code:: bash
