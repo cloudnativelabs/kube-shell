@@ -1,4 +1,4 @@
-WIP kube-shell
+kube-shell
 ==============
 
 |Build Status| |PyPI version| |PyPI pyversions| |License| |Gitter chat|
