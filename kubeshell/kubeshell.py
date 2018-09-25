@@ -1,23 +1,23 @@
-from __future__ import print_function, absolute_import, unicode_literals
+from __future__ import absolute_import, print_function, unicode_literals
 
+import logging
+import os
+import subprocess
+import sys
+
+import click
+import yaml
+from kubeshell.client import KubernetesClient, kubeconfig_filepath
+from kubeshell.completer import KubectlCompleter
+from kubeshell.lexer import KubectlLexer
+from kubeshell.style import StyleFactory
+from kubeshell.toolbar import Toolbar
 from prompt_toolkit import prompt
-from prompt_toolkit.history import FileHistory
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
+from prompt_toolkit.history import FileHistory
 from prompt_toolkit.key_binding.defaults import load_key_bindings_for_prompt
 from prompt_toolkit.keys import Keys
 
-from kubeshell.style import StyleFactory
-from kubeshell.completer import KubectlCompleter
-from kubeshell.lexer import KubectlLexer
-from kubeshell.toolbar import Toolbar
-from kubeshell.client import KubernetesClient, kubeconfig_filepath
-
-import os
-import click
-import sys
-import subprocess
-import yaml
-import logging
 logger = logging.getLogger(__name__)
 
 inline_help = True

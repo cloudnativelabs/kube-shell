@@ -1,11 +1,11 @@
-from __future__ import absolute_import, unicode_literals, print_function
-import json
-import os
+from __future__ import absolute_import, print_function, unicode_literals
 
+import json
 import logging
-logger = logging.getLogger(__name__)
 
 from kubeshell.client import KubernetesClient
+
+logger = logging.getLogger(__name__)
 
 
 class Option(object):
@@ -163,6 +163,7 @@ class Parser(object):
             logger.debug("incomplete option: %s provided. returning suggestions", token)
             unparsed.append(token)
         return parsed, unparsed, suggestions
+
 
 if __name__ == '__main__':
     parser = Parser('/Users/tsp/workspace/py/kube-shell/kubeshell/data/cli.json')

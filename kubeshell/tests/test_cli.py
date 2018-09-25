@@ -1,8 +1,9 @@
 from __future__ import unicode_literals
+
 import unittest
-import pip
+
 import pexpect
-import unittest
+
 
 class CliTest(unittest.TestCase):
 
@@ -16,6 +17,7 @@ class CliTest(unittest.TestCase):
 
     def step_see_prompt(self):
         self.cli.expect('kube-shell> ')
+
 
 if __name__ == "__main__":
     unittest.main()

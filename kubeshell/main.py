@@ -2,17 +2,20 @@
 # -*- coding: utf-8 -*-
 
 
-from __future__ import print_function, absolute_import, unicode_literals
-from kubeshell.kubeshell import Kubeshell
+from __future__ import absolute_import, print_function, unicode_literals
 
 import logging
+
+from kubeshell.kubeshell import Kubeshell
+
 logger = logging.getLogger(__name__)
 
 
 def cli():
-    kube_shell= Kubeshell()
+    kube_shell = Kubeshell()
     logger.info("session start")
     kube_shell.run_cli()
+
 
 if __name__ == "__main__":
     cli()
