@@ -1,6 +1,8 @@
-from __future__ import print_function, absolute_import, unicode_literals
-from pygments.token import Token
-from pygments.token import Keyword, Name, Operator, Generic, Literal, Text
+from __future__ import absolute_import, print_function, unicode_literals
+
+from pygments.token import (Generic, Keyword, Literal, Name, Operator, Text,
+                            Token)
+
 
 class Toolbar(object):
     """Show information about the aws-shell in a tool bar.

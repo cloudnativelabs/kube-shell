@@ -1,15 +1,17 @@
-from __future__ import absolute_import, unicode_literals, print_function
-from subprocess import check_output
-from prompt_toolkit.completion import Completer, Completion
-from fuzzyfinder import fuzzyfinder
-import logging
-import shlex
+from __future__ import absolute_import, print_function, unicode_literals
+
 import json
+import logging
 import os
 import os.path
+import shlex
+from subprocess import check_output
 
-from kubeshell.parser import Parser
+from fuzzyfinder import fuzzyfinder
 from kubeshell.client import KubernetesClient
+from kubeshell.parser import Parser
+from prompt_toolkit.completion import Completer, Completion
+
 logger = logging.getLogger(__name__)
 
 

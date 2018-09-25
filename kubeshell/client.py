@@ -1,11 +1,13 @@
-from __future__ import absolute_import, unicode_literals, print_function
-from urllib3.exceptions import NewConnectionError, ConnectTimeoutError, MaxRetryError
+from __future__ import absolute_import, print_function, unicode_literals
+
+import logging
+import os
+
+import urllib3
 from kubernetes import client, config
 from kubernetes.client.api_client import ApiException
-
-import os
-import logging
-import urllib3
+from urllib3.exceptions import (ConnectTimeoutError, MaxRetryError,
+                                NewConnectionError)
 
 # disable warnings on stdout/stderr from urllib3 connection errors
 ulogger = logging.getLogger("urllib3")

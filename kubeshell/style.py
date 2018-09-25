@@ -10,11 +10,12 @@
 # distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
-from __future__ import print_function, absolute_import, unicode_literals
+from __future__ import absolute_import, print_function, unicode_literals
+
+from prompt_toolkit.styles import default_style_extensions, style_from_dict
+from pygments.styles import get_style_by_name
 from pygments.token import Token
 from pygments.util import ClassNotFound
-from pygments.styles import get_style_by_name
-from prompt_toolkit.styles import default_style_extensions, style_from_dict
 
 
 class StyleFactory(object):
