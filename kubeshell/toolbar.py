@@ -3,7 +3,7 @@ from pygments.token import Token
 from pygments.token import Keyword, Name, Operator, Generic, Literal, Text
 
 class Toolbar(object):
-    """Show information about the aws-shell in a tool bar.
+    """Show information about the kube-shell in a tool bar.
 
     :type handler: callable
     :param handler: Wraps the callable `get_toolbar_items`.
