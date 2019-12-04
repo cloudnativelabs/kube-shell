@@ -78,7 +78,7 @@ class Parser(object):
         parsed, unparsed, suggestions = self.treewalk(self.ast, parsed=list(), unparsed=tokens)
         if not suggestions and unparsed:
             # TODO: @vogxn: This is hack until we include expected value types for each option and argument.
-            # Whenver we receive no suggestions but are left with unparsed tokens we pop the value and walk the
+            # Whenever we receive no suggestions but are left with unparsed tokens we pop the value and walk the
             # tree again without values
             logger.debug("unparsed tokens remain, possible value encountered")
             unparsed.pop()
