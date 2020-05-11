@@ -39,7 +39,7 @@ class KubeConfig(object):
             return ("", "", "")
 
         with open(os.path.expanduser(kubeconfig_filepath), "r") as fd:
-            docs = yaml.load_all(fd)
+            docs = yaml.load_all(fd, Loader=yaml.SafeLoader)
             for doc in docs:
                 current_context = doc.get("current-context", "")
                 contexts = doc.get("contexts")
