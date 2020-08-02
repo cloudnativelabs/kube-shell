@@ -62,15 +62,15 @@ class KubeConfig(object):
             return
 
         with open(os.path.expanduser(kubeconfig_filepath), "r") as fd:
-            docs = yaml.load_all(fd)
-            for doc in docs:
-                contexts = doc.get("contexts")
-                if contexts:
-                    KubeConfig.current_context_index = (KubeConfig.current_context_index + 1) % len(contexts)
-                    cluster_name = contexts[KubeConfig.current_context_index]['name']
-                    kubectl_config_use_context = "kubectl config use-context " + cluster_name
-                    cmd_process = subprocess.Popen(kubectl_config_use_context, shell=True, stdout=subprocess.PIPE)
-                    cmd_process.wait()
+            # docs = yaml.load_all(fd)  # 已经弃用
+            docs = yaml.load(fd, Loader=yaml.FullLoader)
+            contexts = docs.get("contexts")
+            if contexts:
+                KubeConfig.current_context_index = (KubeConfig.current_context_index + 1) % len(contexts)
+                cluster_name = contexts[KubeConfig.current_context_index]['name']
+                kubectl_config_use_context = "kubectl config use-context " + cluster_name
+                cmd_process = subprocess.Popen(kubectl_config_use_context, shell=True, stdout=subprocess.PIPE)
+                cmd_process.wait()
         return
 
     @staticmethod
