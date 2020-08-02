@@ -18,6 +18,7 @@ import sys
 import subprocess
 import yaml
 import logging
+
 logger = logging.getLogger(__name__)
 
 inline_help = True
@@ -27,7 +28,6 @@ client = KubernetesClient()
 
 
 class KubeConfig(object):
-
     clustername = user = ""
     namespace = "default"
     current_context_index = 0
@@ -39,22 +39,21 @@ class KubeConfig(object):
             return ("", "", "")
 
         with open(os.path.expanduser(kubeconfig_filepath), "r") as fd:
-            docs = yaml.load_all(fd)
-            for doc in docs:
-                current_context = doc.get("current-context", "")
-                contexts = doc.get("contexts")
-                if contexts:
-                    for index, context in enumerate(contexts):
-                        if context['name'] == current_context:
-                            KubeConfig.current_context_index = index
-                            KubeConfig.current_context_name = context['name']
-                            if 'cluster' in context['context']:
-                                KubeConfig.clustername = context['context']['cluster']
-                            if 'namespace' in context['context']:
-                                KubeConfig.namespace = context['context']['namespace']
-                            if 'user' in context['context']:
-                                KubeConfig.user = context['context']['user']
-                            return (KubeConfig.clustername, KubeConfig.user, KubeConfig.namespace)
+            docs = yaml.load(fd, Loader=yaml.FullLoader)
+            current_context = docs.get("current-context", "")
+            contexts = docs.get("contexts")
+            if contexts:
+                for index, context in enumerate(contexts):
+                    if context['name'] == current_context:
+                        KubeConfig.current_context_index = index
+                        KubeConfig.current_context_name = context['name']
+                        if 'cluster' in context['context']:
+                            KubeConfig.clustername = context['context']['cluster']
+                        if 'namespace' in context['context']:
+                            KubeConfig.namespace = context['context']['namespace']
+                        if 'user' in context['context']:
+                            KubeConfig.user = context['context']['user']
+                        return (KubeConfig.clustername, KubeConfig.user, KubeConfig.namespace)
         return ("", "", "")
 
     @staticmethod
@@ -63,15 +62,15 @@ class KubeConfig(object):
             return
 
         with open(os.path.expanduser(kubeconfig_filepath), "r") as fd:
-            docs = yaml.load_all(fd)
-            for doc in docs:
-                contexts = doc.get("contexts")
-                if contexts:
-                    KubeConfig.current_context_index = (KubeConfig.current_context_index+1) % len(contexts)
-                    cluster_name = contexts[KubeConfig.current_context_index]['name']
-                    kubectl_config_use_context = "kubectl config use-context " + cluster_name
-                    cmd_process = subprocess.Popen(kubectl_config_use_context, shell=True, stdout=subprocess.PIPE)
-                    cmd_process.wait()
+            # docs = yaml.load_all(fd)  # 已经弃用
+            docs = yaml.load(fd, Loader=yaml.FullLoader)
+            contexts = docs.get("contexts")
+            if contexts:
+                KubeConfig.current_context_index = (KubeConfig.current_context_index + 1) % len(contexts)
+                cluster_name = contexts[KubeConfig.current_context_index]['name']
+                kubectl_config_use_context = "kubectl config use-context " + cluster_name
+                cmd_process = subprocess.Popen(kubectl_config_use_context, shell=True, stdout=subprocess.PIPE)
+                cmd_process.wait()
         return
 
     @staticmethod
@@ -87,7 +86,6 @@ class KubeConfig(object):
 
 
 class Kubeshell(object):
-
     clustername = user = ""
     namespace = "default"
 
@@ -144,7 +142,7 @@ class Kubeshell(object):
         logger.info("running kube-shell event loop")
         if not os.path.exists(os.path.expanduser(kubeconfig_filepath)):
             click.secho('Kube-shell uses {0} for server side completion. Could not find {0}. '
-                    'Server side completion functionality may not work.'.format(kubeconfig_filepath),
+                        'Server side completion functionality may not work.'.format(kubeconfig_filepath),
                         fg='red', blink=True, bold=True)
         while True:
             global inline_help
@@ -156,16 +154,16 @@ class Kubeshell(object):
 
             try:
                 user_input = prompt('kube-shell> ',
-                            history=self.history,
-                            auto_suggest=AutoSuggestFromHistory(),
-                            style=StyleFactory("vim").style,
-                            lexer=KubectlLexer,
-                            get_title=get_title,
-                            enable_history_search=False,
-                            get_bottom_toolbar_tokens=self.toolbar.handler,
-                            vi_mode=True,
-                            key_bindings_registry=registry,
-                            completer=completer)
+                                    history=self.history,
+                                    auto_suggest=AutoSuggestFromHistory(),
+                                    style=StyleFactory("vim").style,
+                                    lexer=KubectlLexer,
+                                    get_title=get_title,
+                                    enable_history_search=False,
+                                    get_bottom_toolbar_tokens=self.toolbar.handler,
+                                    vi_mode=True,
+                                    key_bindings_registry=registry,
+                                    completer=completer)
             except (EOFError, KeyboardInterrupt):
                 sys.exit()
 
