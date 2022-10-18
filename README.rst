@@ -15,13 +15,13 @@ Auto Completion of Commands and Options with in-line documentation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. figure:: http://i.imgur.com/dfelkKr.gif
-   :alt: 
+   :alt:
 
 Fish-Style Auto Suggestions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. figure:: http://i.imgur.com/7VciOuR.png
-   :alt: 
+   :alt:
 
 Command History
 ^^^^^^^^^^^^^^^
@@ -33,19 +33,19 @@ through all kubectl get commands. You could also use CTRL+r to search
 from the history of commands.
 
 .. figure:: http://i.imgur.com/xsIM3QV.png
-   :alt: 
+   :alt:
 
 Fuzzy Searching
 ^^^^^^^^^^^^^^^
 
 .. figure:: http://i.imgur.com/tW9oAUO.png
-   :alt: 
+   :alt:
 
 Server Side Auto Completion
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. figure:: http://i.imgur.com/RAfHXjx.gif
-   :alt: 
+   :alt:
 
 Context information
 ^^^^^^^^^^^^^^^^^^^
@@ -55,7 +55,7 @@ on the bottom toolbar. By pressing F4 button you can switch between the
 clusters and using F5 can switch between namespaces.
 
 .. figure:: http://i.imgur.com/MJLgcj3.png
-   :alt: 
+   :alt:
 
 vi editing mode
 ^^^^^^^^^^^^^^^
@@ -68,11 +68,16 @@ Installation
 
 The kube-shell requires python and
 `pip <https://pypi.python.org/pypi/pip>`__ to install. You can
-install the kube-shell using ``pip``:
+install the kube-shell using ``pip`` or ``pip3``:
 
 .. code:: bash
 
         $ pip install kube-shell
+
+            or
+
+        $ pip3 install kube-shell
+
 
 Usage
 -----
